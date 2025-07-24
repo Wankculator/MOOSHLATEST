@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical Fixes Verification</title>
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .status { margin: 10px 0; padding: 10px; border: 1px solid #0f0; }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .info { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Critical Fixes Verification</h1>
+    
+    <div id="status"></div>
+    
+    <script>
+        const log = (msg, type = 'info') => {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            document.getElementById('status').appendChild(div);
+        };
+        
+        // Check 1: Performance
+        const startTime = performance.now();
+        log('Checking performance optimizations...', 'info');
+        
+        window.addEventListener('load', () => {
+            const loadTime = performance.now() - startTime;
+            if (loadTime < 3000) {
+                log(`✓ Page loaded in ${loadTime.toFixed(0)}ms (< 3s)`, 'success');
+            } else {
+                log(`✗ Page loaded in ${loadTime.toFixed(0)}ms (> 3s)`, 'error');
+            }
+        });
+        
+        // Check 2: Multi-wallet import
+        setTimeout(() => {
+            log('Checking multi-wallet import enhancement...', 'info');
+            
+            if (window.MultiAccountModal && window.MultiAccountModal.prototype.createPrivateKeyImportForm) {
+                log('✓ Private key import form method found', 'success');
+            } else {
+                log('✗ Private key import form method not found', 'error');
+            }
+            
+            if (window.MultiAccountModal && window.MultiAccountModal.prototype.handleImportPrivateKey) {
+                log('✓ Private key import handler found', 'success');
+            } else {
+                log('✗ Private key import handler not found', 'error');
+            }
+        }, 2000);
+        
+        // Check 3: Lock screen fix
+        log('Checking lock screen fixes...', 'info');
+        
+        // Check if ElementFactory is available
+        if (window.ElementFactory || window.$) {
+            log('✓ ElementFactory available', 'success');
+        } else {
+            log('✗ ElementFactory not available', 'error');
+        }
+        
+        // Check if critical fixes loaded
+        const criticalFixesScript = Array.from(document.scripts).find(s => s.src.includes('critical-fixes.js'));
+        if (criticalFixesScript) {
+            log('✓ Critical fixes script loaded', 'success');
+        } else {
+            log('✗ Critical fixes script not found', 'error');
+        }
+        
+        // Summary
+        setTimeout(() => {
+            log('==== Verification Complete ====', 'info');
+            log('Fixes Applied:', 'info');
+            log('1. Multi-wallet import with private key tabs', 'info');
+            log('2. Performance optimizations for faster loading', 'info');
+            log('3. Lock screen UI rendering fixes', 'info');
+        }, 3000);
+    </script>
+</body>
+</html>

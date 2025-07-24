@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Simulation: Account Import Flow - MOOSH Wallet</title>
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+        }
+        
+        .simulation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .simulation-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .simulation-step {
+            background: #111;
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #f57315;
+            color: #000;
+            padding: 5px 15px;
+            font-weight: bold;
+        }
+        
+        .step-title {
+            color: #f57315;
+            font-size: 18px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        
+        .step-content {
+            color: #888;
+            line-height: 1.6;
+        }
+        
+        .action-button {
+            padding: 10px 20px;
+            background: #000;
+            border: 2px solid #f57315;
+            color: #f57315;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 10px 5px;
+            transition: all 0.2s ease;
+        }
+        
+        .action-button:hover {
+            background: #f57315;
+            color: #000;
+        }
+        
+        .test-results {
+            background: #000;
+            border: 2px solid #0f0;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        
+        .success { color: #69fd97; }
+        .error { color: #ff4444; }
+        .info { color: #00d4ff; }
+        .warning { color: #f57315; }
+        
+        .test-mnemonic {
+            background: #222;
+            border: 1px solid #444;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        .flow-diagram {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .flow-step {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+        }
+        
+        .flow-arrow {
+            color: #f57315;
+            margin: 0 10px;
+        }
+        
+        .issue-box {
+            background: #220000;
+            border: 2px solid #ff4444;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .fix-box {
+            background: #002200;
+            border: 2px solid #69fd97;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <div class="simulation-container">
+        <div class="simulation-header">
+            <h1 style="color: #f57315;">USER SIMULATION: ACCOUNT IMPORT FLOW</h1>
+            <p style="color: #666;">Complete walkthrough of importing accounts in MOOSH Wallet Dashboard</p>
+        </div>
+        
+        <div class="flow-diagram">
+            <span class="flow-step">Dashboard</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Manage Accounts</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Import</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Enter Mnemonic</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Success</span>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">STEP 1</div>
+            <h3 class="step-title">Starting from Dashboard</h3>
+            <div class="step-content">
+                <p>User is on the main dashboard and wants to import an existing wallet.</p>
+                <p><strong>Expected:</strong> Easy access to account management</p>
+                <p><strong>Options:</strong></p>
+                <ul>
+                    <li>AccountSwitcher dropdown in header</li>
+                    <li>Manage button in dashboard</li>
+                </ul>
+            </div>
+            <button class="action-button" onclick="simulateStep1()">SIMULATE DASHBOARD</button>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">STEP 2</div>
+            <h3 class="step-title">Opening Account Manager</h3>
+            <div class="step-content">
+                <p>User clicks "Manage" button to open AccountListModal</p>
+                <p><strong>Expected:</strong> Modal opens with account list and Import button</p>
+            </div>
+            <button class="action-button" onclick="simulateStep2()">OPEN ACCOUNT MANAGER</button>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">STEP 3</div>
+            <h3 class="step-title">Clicking Import Button</h3>
+            <div class="step-content">
+                <p>User clicks "Import" button in AccountListModal</p>
+                <p><strong>Expected:</strong> Opens import modal/form</p>
+            </div>
+            <button class="action-button" onclick="simulateStep3()">CLICK IMPORT</button>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">STEP 4</div>
+            <h3 class="step-title">Entering Mnemonic</h3>
+            <div class="step-content">
+                <p>User enters their 12/24 word mnemonic phrase</p>
+                <div class="test-mnemonic">
+                    <strong>Test Mnemonic (12 words):</strong><br>
+                    abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
+                </div>
+                <p><strong>Expected:</strong> Validation, address generation, account creation</p>
+            </div>
+            <button class="action-button" onclick="simulateStep4()">SIMULATE IMPORT</button>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">STEP 5</div>
+            <h3 class="step-title">Post-Import Verification</h3>
+            <div class="step-content">
+                <p>After successful import, verify:</p>
+                <ul>
+                    <li>New account appears in account list</li>
+                    <li>Can switch to imported account</li>
+                    <li>Addresses are generated correctly</li>
+                    <li>Account persists after refresh</li>
+                </ul>
+            </div>
+            <button class="action-button" onclick="simulateStep5()">VERIFY IMPORT</button>
+        </div>
+        
+        <div class="test-results" id="results">
+            <span class="info">Ready to start simulation. Click buttons above to proceed through each step.</span>
+        </div>
+        
+        <div class="simulation-step">
+            <div class="step-number">ISSUES</div>
+            <h3 class="step-title">Potential Issues to Check</h3>
+            <div class="issue-box">
+                <strong>Issue 1:</strong> Import button location unclear<br>
+                <strong>Issue 2:</strong> Modal closes unexpectedly<br>
+                <strong>Issue 3:</strong> Mnemonic validation errors<br>
+                <strong>Issue 4:</strong> Address generation failures<br>
+                <strong>Issue 5:</strong> Account not persisting
+            </div>
+        </div>
+        
+        <button class="action-button" onclick="runFullSimulation()" style="width: 100%; margin-top: 30px; background: #f57315; color: #000;">
+            RUN COMPLETE SIMULATION
+        </button>
+    </div>
+    
+    <script src="js/moosh-wallet.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        let simulationLog = [];
+        
+        function log(message, type = 'info') {
+            const time = new Date().toTimeString().split(' ')[0];
+            const logEntry = `<span class="${type}">[${time}] ${message}</span>`;
+            simulationLog.push(logEntry);
+            results.innerHTML = simulationLog.join('\n');
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            simulationLog = [];
+            results.innerHTML = '<span class="info">Starting new simulation...</span>';
+        }
+        
+        function simulateStep1() {
+            clearLog();
+            log('=== STEP 1: Dashboard Simulation ===', 'info');
+            
+            // Check if we're on dashboard
+            if (window.app && window.app.state.get('currentPage') === 'dashboard') {
+                log('✓ Already on dashboard', 'success');
+            } else {
+                log('Navigating to dashboard...', 'info');
+                window.location.hash = '#dashboard';
+                setTimeout(() => {
+                    log('✓ Dashboard loaded', 'success');
+                }, 500);
+            }
+            
+            // Check for Manage button
+            setTimeout(() => {
+                const manageBtn = Array.from(document.querySelectorAll('button')).find(
+                    btn => btn.textContent === 'Manage'
+                );
+                if (manageBtn) {
+                    log('✓ Found "Manage" button in dashboard', 'success');
+                } else {
+                    log('✗ "Manage" button not found in dashboard', 'error');
+                    log('  Checking for alternative access points...', 'warning');
+                }
+                
+                // Check AccountSwitcher
+                const accountSwitcher = document.querySelector('.account-switcher');
+                if (accountSwitcher) {
+                    log('✓ AccountSwitcher present in header', 'success');
+                } else {
+                    log('✗ AccountSwitcher not found', 'error');
+                }
+            }, 1000);
+        }
+        
+        function simulateStep2() {
+            log('\n=== STEP 2: Opening Account Manager ===', 'info');
+            
+            try {
+                const modal = new AccountListModal(window.app);
+                modal.show();
+                log('✓ AccountListModal opened', 'success');
+                
+                setTimeout(() => {
+                    // Check modal elements
+                    const modalEl = document.querySelector('.account-list-modal');
+                    if (!modalEl) {
+                        log('✗ Modal element not found in DOM', 'error');
+                        return;
+                    }
+                    
+                    // Check for Import button
+                    const importBtn = Array.from(modalEl.querySelectorAll('button')).find(
+                        btn => btn.textContent === 'Import'
+                    );
+                    
+                    if (importBtn) {
+                        log('✓ Import button found in toolbar', 'success');
+                        log(`  Position: ${importBtn.parentElement.className}`, 'info');
+                    } else {
+                        log('✗ Import button not found', 'error');
+                    }
+                    
+                    // Check other elements
+                    const newAccountBtn = Array.from(modalEl.querySelectorAll('button')).find(
+                        btn => btn.textContent === '+ New Account'
+                    );
+                    if (newAccountBtn) {
+                        log('✓ New Account button found', 'success');
+                    }
+                    
+                    // Count existing accounts
+                    const accountCards = modalEl.querySelectorAll('.account-card');
+                    log(`  Current accounts: ${accountCards.length}`, 'info');
+                    
+                }, 500);
+            } catch (error) {
+                log(`✗ Error opening modal: ${error.message}`, 'error');
+            }
+        }
+        
+        function simulateStep3() {
+            log('\n=== STEP 3: Import Button Click ===', 'info');
+            
+            const modalEl = document.querySelector('.account-list-modal');
+            if (!modalEl) {
+                log('✗ Account modal not open', 'error');
+                return;
+            }
+            
+            const importBtn = Array.from(modalEl.querySelectorAll('button')).find(
+                btn => btn.textContent === 'Import'
+            );
+            
+            if (!importBtn) {
+                log('✗ Import button not found', 'error');
+                return;
+            }
+            
+            log('Clicking Import button...', 'info');
+            importBtn.click();
+            
+            setTimeout(() => {
+                // Check if import modal opened
+                const importModal = document.querySelector('.multi-account-modal');
+                if (importModal) {
+                    log('✓ Import modal opened', 'success');
+                    
+                    // Check for mnemonic input
+                    const mnemonicInput = importModal.querySelector('textarea');
+                    if (mnemonicInput) {
+                        log('✓ Mnemonic input field found', 'success');
+                        log(`  Placeholder: "${mnemonicInput.placeholder}"`, 'info');
+                    } else {
+                        log('✗ Mnemonic input not found', 'error');
+                    }
+                    
+                    // Check for import button in modal
+                    const modalImportBtn = Array.from(importModal.querySelectorAll('button')).find(
+                        btn => btn.textContent.includes('Import')
+                    );
+                    if (modalImportBtn) {
+                        log('✓ Import confirmation button found', 'success');
+                    }
+                    
+                } else {
+                    log('✗ Import modal did not open', 'error');
+                    log('  Checking if AccountListModal closed...', 'warning');
+                    
+                    const accountModal = document.querySelector('.account-list-modal');
+                    if (!accountModal) {
+                        log('  ✓ AccountListModal closed (expected behavior)', 'success');
+                    }
+                }
+            }, 500);
+        }
+        
+        function simulateStep4() {
+            log('\n=== STEP 4: Mnemonic Import Simulation ===', 'info');
+            
+            const testMnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+            log(`Using test mnemonic: ${testMnemonic.split(' ').length} words`, 'info');
+            
+            // Find import modal
+            const importModal = document.querySelector('.multi-account-modal');
+            if (!importModal) {
+                log('✗ Import modal not found', 'error');
+                log('  Opening import modal first...', 'warning');
+                
+                // Try to open it
+                if (window.app && window.app.multiAccountModal) {
+                    window.app.multiAccountModal.isImporting = true;
+                    window.app.multiAccountModal.show();
+                    
+                    setTimeout(() => simulateStep4(), 500);
+                    return;
+                }
+            }
+            
+            // Find mnemonic input
+            const mnemonicInput = importModal?.querySelector('textarea');
+            if (!mnemonicInput) {
+                log('✗ Mnemonic input field not found', 'error');
+                return;
+            }
+            
+            // Enter mnemonic
+            log('Entering test mnemonic...', 'info');
+            mnemonicInput.value = testMnemonic;
+            mnemonicInput.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Find import button
+            const importBtn = Array.from(importModal.querySelectorAll('button')).find(
+                btn => btn.textContent.includes('Import')
+            );
+            
+            if (!importBtn) {
+                log('✗ Import button not found in modal', 'error');
+                return;
+            }
+            
+            log('Clicking import button...', 'info');
+            
+            // Monitor for results
+            const accountsBefore = window.app.state.get('accounts')?.length || 0;
+            
+            importBtn.click();
+            
+            setTimeout(() => {
+                const accountsAfter = window.app.state.get('accounts')?.length || 0;
+                
+                if (accountsAfter > accountsBefore) {
+                    log('✓ Account imported successfully!', 'success');
+                    log(`  Accounts before: ${accountsBefore}`, 'info');
+                    log(`  Accounts after: ${accountsAfter}`, 'info');
+                    
+                    // Check the new account
+                    const accounts = window.app.state.get('accounts');
+                    const newAccount = accounts[accounts.length - 1];
+                    
+                    log('\n  New Account Details:', 'info');
+                    log(`  - Name: ${newAccount.name}`, 'info');
+                    log(`  - ID: ${newAccount.id}`, 'info');
+                    log(`  - Type: ${newAccount.type || 'HD Wallet'}`, 'info');
+                    log(`  - Created: ${new Date(newAccount.createdAt).toLocaleString()}`, 'info');
+                    
+                    if (newAccount.addresses) {
+                        log('\n  Generated Addresses:', 'info');
+                        if (newAccount.addresses.bech32) {
+                            log(`  - Bech32: ${newAccount.addresses.bech32.substring(0, 20)}...`, 'success');
+                        }
+                        if (newAccount.addresses.segwit) {
+                            log(`  - SegWit: ${newAccount.addresses.segwit.substring(0, 20)}...`, 'success');
+                        }
+                        if (newAccount.addresses.taproot) {
+                            log(`  - Taproot: ${newAccount.addresses.taproot.substring(0, 20)}...`, 'success');
+                        }
+                    }
+                    
+                } else {
+                    log('✗ Account import may have failed', 'error');
+                    log('  No new accounts detected', 'warning');
+                    
+                    // Check for error messages
+                    const errorMsg = importModal?.querySelector('.error-message');
+                    if (errorMsg) {
+                        log(`  Error: ${errorMsg.textContent}`, 'error');
+                    }
+                }
+                
+                // Check if modal closed
+                const modalStillOpen = document.querySelector('.multi-account-modal');
+                if (!modalStillOpen) {
+                    log('\n✓ Import modal closed automatically', 'success');
+                } else {
+                    log('\n⚠ Import modal still open', 'warning');
+                }
+                
+            }, 1000);
+        }
+        
+        function simulateStep5() {
+            log('\n=== STEP 5: Post-Import Verification ===', 'info');
+            
+            const accounts = window.app.state.get('accounts') || [];
+            if (accounts.length === 0) {
+                log('✗ No accounts found', 'error');
+                return;
+            }
+            
+            log(`Total accounts: ${accounts.length}`, 'info');
+            
+            // Check latest account (should be imported one)
+            const latestAccount = accounts[accounts.length - 1];
+            log('\nVerifying imported account...', 'info');
+            
+            // 1. Check account properties
+            if (latestAccount.mnemonic) {
+                log('✓ Mnemonic stored', 'success');
+            } else {
+                log('✗ Mnemonic not stored', 'error');
+            }
+            
+            if (latestAccount.addresses) {
+                log('✓ Addresses generated', 'success');
+            } else {
+                log('✗ Addresses not generated', 'error');
+            }
+            
+            // 2. Test switching to account
+            log('\nTesting account switch...', 'info');
+            const switched = window.app.state.switchAccount(latestAccount.id);
+            if (switched) {
+                log('✓ Successfully switched to imported account', 'success');
+                
+                const currentAccount = window.app.state.getCurrentAccount();
+                if (currentAccount.id === latestAccount.id) {
+                    log('✓ Current account verified', 'success');
+                }
+            } else {
+                log('✗ Failed to switch to imported account', 'error');
+            }
+            
+            // 3. Test persistence
+            log('\nTesting persistence...', 'info');
+            const savedAccounts = localStorage.getItem('moosh_accounts');
+            if (savedAccounts) {
+                const parsed = JSON.parse(savedAccounts);
+                const found = parsed.find(a => a.id === latestAccount.id);
+                if (found) {
+                    log('✓ Account saved to localStorage', 'success');
+                } else {
+                    log('✗ Account not found in localStorage', 'error');
+                }
+            }
+            
+            // 4. Open AccountListModal to verify
+            log('\nOpening Account Manager to verify...', 'info');
+            const modal = new AccountListModal(window.app);
+            modal.show();
+            
+            setTimeout(() => {
+                const modalEl = document.querySelector('.account-list-modal');
+                const accountCards = modalEl?.querySelectorAll('.account-card');
+                
+                if (accountCards && accountCards.length === accounts.length) {
+                    log('✓ All accounts displayed in modal', 'success');
+                    
+                    // Check if imported account has MAKE ACTIVE button
+                    const importedCard = Array.from(accountCards).find(card => {
+                        return card.getAttribute('data-account-id') === latestAccount.id;
+                    });
+                    
+                    if (importedCard) {
+                        const makeActiveBtn = Array.from(importedCard.querySelectorAll('button')).find(
+                            btn => btn.textContent === 'MAKE ACTIVE'
+                        );
+                        
+                        if (makeActiveBtn || currentAccount.id === latestAccount.id) {
+                            log('✓ Imported account UI elements correct', 'success');
+                        }
+                    }
+                }
+                
+                log('\n=== SIMULATION COMPLETE ===', 'success');
+                
+            }, 500);
+        }
+        
+        async function runFullSimulation() {
+            clearLog();
+            log('=== RUNNING COMPLETE IMPORT SIMULATION ===\n', 'info');
+            
+            // Step 1
+            simulateStep1();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Step 2
+            simulateStep2();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Step 3
+            simulateStep3();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Step 4
+            simulateStep4();
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Step 5
+            simulateStep5();
+            
+            setTimeout(() => {
+                log('\n=== SIMULATION SUMMARY ===', 'info');
+                
+                const errors = simulationLog.filter(log => log.includes('error')).length;
+                const warnings = simulationLog.filter(log => log.includes('warning')).length;
+                const successes = simulationLog.filter(log => log.includes('success')).length;
+                
+                log(`\nResults:`, 'info');
+                log(`  ✓ Successes: ${successes}`, 'success');
+                log(`  ⚠ Warnings: ${warnings}`, 'warning');
+                log(`  ✗ Errors: ${errors}`, 'error');
+                
+                if (errors === 0) {
+                    log('\n🎉 Import flow working correctly!', 'success');
+                } else {
+                    log('\n⚠️ Issues detected in import flow', 'warning');
+                    
+                    // Provide fixes
+                    log('\n=== RECOMMENDED FIXES ===', 'info');
+                    
+                    if (simulationLog.some(log => log.includes('Import button not found'))) {
+                        log('\nFIX 1: Import button visibility', 'warning');
+                        log('  - Ensure Import button is clearly visible in AccountListModal toolbar', 'info');
+                        log('  - Consider adding icon or better positioning', 'info');
+                    }
+                    
+                    if (simulationLog.some(log => log.includes('modal did not open'))) {
+                        log('\nFIX 2: Modal transition', 'warning');
+                        log('  - Check importAccount() method in AccountListModal', 'info');
+                        log('  - Verify MultiAccountModal initialization', 'info');
+                    }
+                    
+                    if (simulationLog.some(log => log.includes('Mnemonic not stored'))) {
+                        log('\nFIX 3: Account data persistence', 'warning');
+                        log('  - Verify mnemonic is properly saved with account', 'info');
+                        log('  - Check encryption/decryption if applicable', 'info');
+                    }
+                }
+                
+            }, 2000);
+        }
+        
+        // Auto-run simulation on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('Simulation ready. Click any step button or "RUN COMPLETE SIMULATION" to begin.', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "generated": "2025-01-16",
+    "totalComponents": 25,
+    "totalDependencies": 147
+  },
+  "components": {
+    "ElementFactory": {
+      "type": "utility",
+      "dependencies": [],
+      "dependents": ["ALL_COMPONENTS"],
+      "critical": true,
+      "description": "Core DOM creation utility used by every UI component"
+    },
+    "ResponsiveUtils": {
+      "type": "utility",
+      "dependencies": [],
+      "dependents": ["StyleManager", "MOOSHWalletApp"],
+      "critical": true,
+      "description": "Handles responsive scaling and viewport management"
+    },
+    "StyleManager": {
+      "type": "utility",
+      "dependencies": ["ResponsiveUtils"],
+      "dependents": ["MOOSHWalletApp"],
+      "critical": true,
+      "description": "Injects and manages all CSS styles"
+    },
+    "StateManager": {
+      "type": "core",
+      "dependencies": [],
+      "dependents": ["ALL_COMPONENTS"],
+      "critical": true,
+      "description": "Central state management with LocalStorage persistence"
+    },
+    "APIService": {
+      "type": "service",
+      "dependencies": ["StateManager"],
+      "dependents": ["DashboardPage", "WalletDetailsPage", "SendPaymentModal"],
+      "critical": true,
+      "description": "External API communication layer"
+    },
+    "Router": {
+      "type": "core",
+      "dependencies": ["StateManager"],
+      "dependents": ["MOOSHWalletApp", "ALL_PAGES"],
+      "critical": true,
+      "description": "Hash-based SPA routing system"
+    },
+    "Component": {
+      "type": "base-class",
+      "dependencies": ["ElementFactory", "StateManager"],
+      "dependents": ["ALL_PAGES", "ALL_MODALS"],
+      "critical": true,
+      "description": "Base class for all components"
+    },
+    "HomePage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#home", "/"],
+      "description": "Landing page with wallet options"
+    },
+    "GenerateSeedPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#generate-seed"],
+      "description": "12/24 word seed generation"
+    },
+    "ConfirmSeedPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#confirm-seed"],
+      "description": "Seed phrase verification"
+    },
+    "ImportSeedPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#import-seed"],
+      "description": "Import existing wallet"
+    },
+    "WalletCreatedPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#wallet-created"],
+      "description": "Success page after wallet creation"
+    },
+    "WalletImportedPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router"],
+      "dependents": [],
+      "routes": ["#wallet-imported"],
+      "description": "Success page after wallet import"
+    },
+    "WalletDetailsPage": {
+      "type": "page",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "Router", "APIService"],
+      "dependents": [],
+      "routes": ["#wallet-details"],
+      "description": "Address details and QR codes"
+    },
+    "DashboardPage": {
+      "type": "page",
+      "dependencies": [
+        "Component", 
+        "ElementFactory", 
+        "StateManager", 
+        "Router", 
+        "APIService",
+        "MultiAccountModal",
+        "TransactionHistoryModal",
+        "TokenMenuModal",
+        "OrdinalsModal",
+        "SwapModal",
+        "WalletSettingsModal",
+        "SendPaymentModal",
+        "ReceivePaymentModal"
+      ],
+      "dependents": [],
+      "routes": ["#dashboard"],
+      "description": "Main wallet dashboard with all features"
+    },
+    "SparkStateManager": {
+      "type": "utility",
+      "dependencies": ["StateManager"],
+      "dependents": ["SparkWalletManager", "DashboardPage"],
+      "description": "Spark protocol state management"
+    },
+    "SparkBitcoinManager": {
+      "type": "utility",
+      "dependencies": ["SparkStateManager"],
+      "dependents": ["SparkWalletManager"],
+      "description": "Spark Bitcoin operations"
+    },
+    "SparkLightningManager": {
+      "type": "utility",
+      "dependencies": ["SparkStateManager"],
+      "dependents": ["SparkWalletManager"],
+      "description": "Spark Lightning operations"
+    },
+    "SparkWalletManager": {
+      "type": "utility",
+      "dependencies": ["SparkStateManager", "SparkBitcoinManager", "SparkLightningManager"],
+      "dependents": ["DashboardPage"],
+      "description": "Unified Spark wallet interface"
+    },
+    "MultiAccountModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager"],
+      "dependents": ["DashboardPage"],
+      "description": "Multi-account management"
+    },
+    "TransactionHistoryModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "APIService"],
+      "dependents": ["DashboardPage"],
+      "description": "Transaction history viewer"
+    },
+    "TokenMenuModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager"],
+      "dependents": ["DashboardPage"],
+      "description": "Token selection menu"
+    },
+    "OrdinalsModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "APIService"],
+      "dependents": ["DashboardPage"],
+      "description": "Ordinals gallery viewer"
+    },
+    "OrdinalsTerminalModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager"],
+      "dependents": ["OrdinalsModal"],
+      "description": "Terminal-style ordinals viewer"
+    },
+    "SwapModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "APIService"],
+      "dependents": ["DashboardPage"],
+      "description": "Token swap interface"
+    },
+    "WalletSettingsModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager"],
+      "dependents": ["DashboardPage"],
+      "description": "Wallet settings and preferences"
+    },
+    "SendPaymentModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager", "APIService"],
+      "dependents": ["DashboardPage"],
+      "description": "Send Bitcoin interface"
+    },
+    "ReceivePaymentModal": {
+      "type": "modal",
+      "dependencies": ["Component", "ElementFactory", "StateManager"],
+      "dependents": ["DashboardPage"],
+      "description": "Receive Bitcoin interface"
+    },
+    "MOOSHWalletApp": {
+      "type": "main",
+      "dependencies": [
+        "ElementFactory",
+        "ResponsiveUtils",
+        "StyleManager",
+        "StateManager",
+        "APIService",
+        "Router",
+        "ALL_PAGES"
+      ],
+      "dependents": [],
+      "critical": true,
+      "description": "Main application orchestrator"
+    }
+  },
+  "criticalPaths": [
+    {
+      "name": "Application Bootstrap",
+      "path": ["MOOSHWalletApp", "StyleManager", "ResponsiveUtils", "StateManager", "Router"],
+      "description": "Core initialization sequence"
+    },
+    {
+      "name": "UI Rendering",
+      "path": ["Component", "ElementFactory", "DOM"],
+      "description": "Every UI update follows this path"
+    },
+    {
+      "name": "State Updates",
+      "path": ["User Action", "Component", "StateManager", "LocalStorage", "Event Emission", "Component Re-render"],
+      "description": "State change propagation"
+    },
+    {
+      "name": "API Communication",
+      "path": ["Component", "APIService", "External API", "StateManager", "Component Update"],
+      "description": "External data flow"
+    }
+  ],
+  "breakingChangeRisks": {
+    "ElementFactory": {
+      "risk": "CRITICAL",
+      "impact": "Breaks entire UI",
+      "affectedComponents": "ALL"
+    },
+    "StateManager": {
+      "risk": "CRITICAL",
+      "impact": "Breaks state persistence and reactivity",
+      "affectedComponents": "ALL"
+    },
+    "Router": {
+      "risk": "HIGH",
+      "impact": "Breaks navigation",
+      "affectedComponents": "ALL_PAGES"
+    },
+    "Component": {
+      "risk": "HIGH",
+      "impact": "Breaks all pages and modals",
+      "affectedComponents": "ALL_PAGES, ALL_MODALS"
+    },
+    "APIService": {
+      "risk": "MEDIUM",
+      "impact": "Breaks external data features",
+      "affectedComponents": ["DashboardPage", "WalletDetailsPage", "TransactionHistoryModal", "SendPaymentModal"]
+    }
+  },
+  "circularDependencies": [],
+  "orphanedComponents": [],
+  "performanceBottlenecks": [
+    {
+      "component": "DashboardPage",
+      "issue": "Loads all modals on initialization",
+      "impact": "Memory usage and initial render time"
+    },
+    {
+      "component": "OrdinalsModal",
+      "issue": "Loads all images without virtualization",
+      "impact": "Performance with large collections"
+    }
+  ]
+}

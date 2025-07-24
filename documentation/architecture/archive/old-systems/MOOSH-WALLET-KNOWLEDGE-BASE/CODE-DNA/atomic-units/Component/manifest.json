@@ -1,0 +1,237 @@
+{
+  "id": "comp-001-base-class",
+  "name": "Component",
+  "type": "base-class",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:2847-2900",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Abstract base class for all UI components providing lifecycle methods, state management integration, and DOM mounting",
+  "architecture": {
+    "pattern": "Classical Inheritance Pattern",
+    "paradigm": "Object-oriented component model",
+    "stateManagement": "Observer pattern via StateManager",
+    "threading": "Single-threaded",
+    "memoryModel": "Manual memory management with destroy()"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": ["StateManager", "ElementFactory"],
+    "browser": ["DOM API"],
+    "runtime": []
+  },
+  "properties": {
+    "app": {
+      "type": "MOOSHWalletApp",
+      "description": "Reference to main application instance",
+      "provides": "Access to state, router, and services"
+    },
+    "element": {
+      "type": "HTMLElement | null",
+      "description": "Root DOM element of component",
+      "lifecycle": "Set during mount(), cleared on unmount()"
+    },
+    "stateListeners": {
+      "type": "Array<{key: string, callback: Function}>",
+      "description": "Tracked state subscriptions for cleanup",
+      "purpose": "Prevents memory leaks on destroy"
+    }
+  },
+  "methods": {
+    "constructor": {
+      "purpose": "Initialize component with app reference",
+      "parameters": {
+        "app": "MOOSHWalletApp instance"
+      },
+      "sets": [
+        "this.app = app",
+        "this.element = null",
+        "this.stateListeners = []"
+      ]
+    },
+    "render": {
+      "purpose": "Create and return component's DOM structure",
+      "abstract": true,
+      "returns": "HTMLElement",
+      "requirement": "MUST be implemented by all subclasses",
+      "throws": "Error if not overridden"
+    },
+    "mount": {
+      "purpose": "Render component and attach to DOM",
+      "parameters": {
+        "parent": "Parent DOM element"
+      },
+      "flow": [
+        "Call render() to get element",
+        "Append element to parent",
+        "Call afterMount() hook"
+      ],
+      "errorHandling": "Logs error if render() returns null"
+    },
+    "afterMount": {
+      "purpose": "Lifecycle hook called after DOM insertion",
+      "virtual": true,
+      "usage": "Override for post-mount initialization",
+      "examples": [
+        "Start intervals/timers",
+        "Focus inputs",
+        "Fetch initial data"
+      ]
+    },
+    "unmount": {
+      "purpose": "Remove component from DOM",
+      "behavior": [
+        "Remove this.element from parent",
+        "Special handling for lock overlay"
+      ],
+      "note": "Does NOT clean up listeners"
+    },
+    "destroy": {
+      "purpose": "Complete cleanup before removal",
+      "critical": "Prevents memory leaks",
+      "flow": [
+        "Remove all state listeners",
+        "Clear listener array",
+        "Call unmount()"
+      ],
+      "usage": "ALWAYS call before removing component"
+    },
+    "listenToState": {
+      "purpose": "Subscribe to state changes with tracking",
+      "parameters": {
+        "key": "State property to watch",
+        "callback": "Function(newValue, oldValue)"
+      },
+      "behavior": [
+        "Subscribes via StateManager",
+        "Tracks subscription for cleanup",
+        "Auto-removed on destroy()"
+      ]
+    }
+  },
+  "lifecycle": {
+    "creation": "new Component(app)",
+    "mounting": "component.mount(container)",
+    "postMount": "afterMount() called",
+    "updates": "Via state listeners",
+    "cleanup": "component.destroy()",
+    "flow": "constructor → render → mount → afterMount → ... → destroy"
+  },
+  "stateIntegration": {
+    "pattern": "Observer with automatic cleanup",
+    "subscription": "listenToState(key, callback)",
+    "cleanup": "Tracked in stateListeners array",
+    "bestPractice": "Always use listenToState() not direct subscribe()"
+  },
+  "subclassRequirements": {
+    "required": {
+      "render": "Must return HTMLElement"
+    },
+    "optional": {
+      "afterMount": "Post-mount initialization",
+      "destroy": "Additional cleanup (call super.destroy())"
+    },
+    "conventions": [
+      "Use ElementFactory for DOM creation",
+      "Handle all events in render()",
+      "Clean up timers in destroy()"
+    ]
+  },
+  "memoryManagement": {
+    "leakPrevention": [
+      "Track all state listeners",
+      "Remove listeners on destroy",
+      "Clear element reference",
+      "Remove from DOM"
+    ],
+    "commonLeaks": [
+      "Forgetting to call destroy()",
+      "Direct state.subscribe() calls",
+      "Timers without cleanup",
+      "Event listeners on window/document"
+    ]
+  },
+  "performance": {
+    "characteristics": {
+      "instantiation": "< 1ms",
+      "mounting": "Depends on render complexity",
+      "stateSubscription": "O(1) per listener",
+      "destruction": "O(n) where n = listeners"
+    },
+    "optimizations": [
+      "Lazy rendering",
+      "Minimal DOM updates",
+      "Batch state listeners"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Render returns element",
+      "Mount attaches to DOM",
+      "Destroy cleans up listeners",
+      "State subscriptions work"
+    ],
+    "mockingStrategy": {
+      "app": "Mock with state.subscribe/removeListener",
+      "parent": "Use document.createElement('div')"
+    }
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "ALWAYS implement render() in subclasses",
+      "ALWAYS call super() in constructor",
+      "ALWAYS use listenToState() not direct subscribe",
+      "ALWAYS call destroy() before removing",
+      "NEVER forget to return element from render()"
+    ],
+    "commonMistakes": [
+      "Forgetting super(app) in constructor",
+      "Not returning element from render()",
+      "Direct DOM manipulation outside render()",
+      "Memory leaks from untracked listeners",
+      "Calling unmount() instead of destroy()"
+    ],
+    "bestPractices": [
+      "One component = one element",
+      "All DOM creation in render()",
+      "Use afterMount() for post-render logic",
+      "Track everything that needs cleanup",
+      "Test destroy() thoroughly"
+    ],
+    "subclassPattern": `
+class MyComponent extends Component {
+    constructor(app) {
+        super(app); // REQUIRED
+        // Initialize properties
+    }
+    
+    render() {
+        return $.div({}, []); // MUST return element
+    }
+    
+    afterMount() {
+        // Post-mount logic
+    }
+    
+    destroy() {
+        // Custom cleanup
+        super.destroy(); // REQUIRED
+    }
+}`
+  },
+  "codeEvolution": {
+    "features": [
+      "Automatic listener cleanup",
+      "Lifecycle hooks",
+      "Lock overlay special handling"
+    ],
+    "futureConsiderations": [
+      "Add beforeUnmount hook",
+      "Implement shouldUpdate",
+      "Add error boundaries",
+      "Support fragments"
+    ]
+  }
+}

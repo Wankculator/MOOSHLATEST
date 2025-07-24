@@ -1,0 +1,227 @@
+{
+  "id": "rt-001-spa-router",
+  "name": "Router",
+  "type": "core-service",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:2705-2842",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Hash-based single-page application router with security-aware rendering and page lifecycle management",
+  "architecture": {
+    "pattern": "Front Controller Pattern",
+    "paradigm": "Component-based SPA routing",
+    "stateManagement": "Integrated with StateManager",
+    "threading": "Single-threaded browser event loop",
+    "memoryModel": "Component instance management"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": [
+      "StateManager",
+      "All Page Components",
+      "WalletLockScreen",
+      "Header"
+    ],
+    "browser": ["window.location", "window.addEventListener", "localStorage", "sessionStorage"],
+    "runtime": ["document.querySelector"]
+  },
+  "properties": {
+    "app": {
+      "type": "MOOSHWalletApp",
+      "description": "Reference to main application instance"
+    },
+    "routes": {
+      "type": "Map",
+      "description": "Page name to component factory mapping"
+    },
+    "currentPageInstance": {
+      "type": "Component",
+      "description": "Active page component instance for cleanup"
+    }
+  },
+  "methods": {
+    "constructor": {
+      "purpose": "Initialize router with app reference",
+      "parameters": {
+        "app": "MOOSHWalletApp instance"
+      },
+      "initialization": [
+        "Sets app reference",
+        "Creates routes Map",
+        "Calls setupRoutes()",
+        "Calls bindEvents()"
+      ]
+    },
+    "setupRoutes": {
+      "purpose": "Define all application routes",
+      "routes": {
+        "home": "HomePage",
+        "generate-seed": "GenerateSeedPage",
+        "confirm-seed": "ConfirmSeedPage",
+        "import-seed": "ImportSeedPage",
+        "wallet-created": "WalletCreatedPage",
+        "wallet-imported": "WalletImportedPage",
+        "wallet-details": "WalletDetailsPage",
+        "dashboard": "DashboardPage"
+      },
+      "pattern": "Factory functions returning new instances"
+    },
+    "bindEvents": {
+      "purpose": "Attach browser navigation event listeners",
+      "events": {
+        "hashchange": "Triggers navigation on URL hash change"
+      }
+    },
+    "navigate": {
+      "purpose": "Programmatic navigation to specific page",
+      "parameters": {
+        "pageId": "Page identifier with optional query params",
+        "options": {
+          "forceRefresh": "Force re-render of same page"
+        }
+      },
+      "behavior": [
+        "Extracts page name from query params",
+        "Updates navigation history",
+        "Sets window.location.hash",
+        "Calls render()"
+      ],
+      "stateUpdates": [
+        "currentPage (page name only)",
+        "currentPageFull (with query params)",
+        "navigationHistory (array)"
+      ]
+    },
+    "goBack": {
+      "purpose": "Navigate to previous page in history",
+      "behavior": [
+        "Pops last item from history",
+        "Navigates to previous page",
+        "Falls back to home if no history"
+      ]
+    },
+    "render": {
+      "purpose": "Main rendering orchestrator with security checks",
+      "flow": [
+        "Check if wallet is locked",
+        "Show lock screen if needed",
+        "Get current page from state",
+        "Find page component class",
+        "Clean up previous instance",
+        "Create and mount new page",
+        "Refresh header if needed"
+      ],
+      "security": {
+        "lockCheck": "Prevents page access when wallet locked",
+        "conditions": [
+          "hasPassword in localStorage",
+          "walletUnlocked in sessionStorage"
+        ]
+      },
+      "domTargets": {
+        "content": ".cursor-content",
+        "header": ".cursor-header"
+      }
+    }
+  },
+  "routing": {
+    "type": "Hash-based routing",
+    "format": "#page-name?param=value",
+    "examples": [
+      "#home",
+      "#dashboard",
+      "#wallet-details?type=bitcoin"
+    ],
+    "queryParams": "Preserved in currentPageFull state"
+  },
+  "lifecycle": {
+    "pageDestruction": "Calls destroy() on previous page if exists",
+    "pageCreation": "Factory function creates new instance",
+    "pageMounting": "Calls mount() with DOM container"
+  },
+  "security": {
+    "walletLocking": {
+      "mechanism": "Password in localStorage, unlock in sessionStorage",
+      "behavior": "Shows WalletLockScreen overlay instead of page"
+    },
+    "considerations": [
+      "All pages blocked when locked",
+      "Lock screen overlays any content",
+      "Session-based unlock state"
+    ]
+  },
+  "performance": {
+    "characteristics": {
+      "routeLookup": "O(1) Map lookup",
+      "pageSwitch": "~10-50ms depending on page",
+      "memoryCleanup": "Explicit destroy() calls"
+    },
+    "optimizations": [
+      "Lazy page instantiation",
+      "Previous page cleanup",
+      "Direct DOM manipulation"
+    ],
+    "bottlenecks": [
+      "Full page re-render on route",
+      "No transition animations",
+      "Synchronous page creation"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Navigation flow",
+      "Lock screen security",
+      "History management",
+      "Page lifecycle"
+    ],
+    "edgeCases": [
+      "Direct hash manipulation",
+      "Rapid navigation",
+      "Missing page routes",
+      "Corrupt history state"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER bypass lock screen checks",
+      "ALWAYS clean up previous page instances",
+      "Page factories must return new instances",
+      "Hash format must be preserved",
+      "Security checks happen BEFORE rendering"
+    ],
+    "commonMistakes": [
+      "Forgetting to destroy previous page",
+      "Not handling query parameters",
+      "Bypassing lock screen",
+      "Direct DOM manipulation without cleanup"
+    ],
+    "bestPractices": [
+      "Use navigate() for all navigation",
+      "Always provide page cleanup in destroy()",
+      "Handle missing routes gracefully",
+      "Preserve navigation history"
+    ],
+    "dependencies": [
+      "StateManager for all state",
+      "Page components must extend Component",
+      "Lock screen is special case",
+      "Header refresh on navigation"
+    ]
+  },
+  "codeEvolution": {
+    "features": [
+      "Query parameter support",
+      "Force refresh option",
+      "Lock screen integration",
+      "History management"
+    ],
+    "futureConsiderations": [
+      "Add route guards",
+      "Implement transitions",
+      "Add deep linking support",
+      "Cache page instances"
+    ]
+  }
+}

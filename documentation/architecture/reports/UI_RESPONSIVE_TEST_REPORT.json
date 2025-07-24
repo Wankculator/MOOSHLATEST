@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-07-07T01:15:48.947Z",
+  "cssAnalysis": {
+    "issues": [],
+    "recommendations": []
+  },
+  "buttonIssues": [],
+  "containerIssues": [],
+  "mobileAnalysis": {
+    "criticalIssues": [],
+    "warnings": []
+  },
+  "totalIssues": 0,
+  "viewports": {
+    "Mobile Small": {
+      "width": 320,
+      "height": 568
+    },
+    "Mobile Medium": {
+      "width": 375,
+      "height": 667
+    },
+    "Mobile Large": {
+      "width": 414,
+      "height": 896
+    },
+    "Tablet": {
+      "width": 768,
+      "height": 1024
+    },
+    "Desktop Small": {
+      "width": 1024,
+      "height": 768
+    },
+    "Desktop Medium": {
+      "width": 1366,
+      "height": 768
+    },
+    "Desktop Large": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "uiElements": {
+    "mainPage": {
+      "passwordSection": {
+        "selector": ".password-section",
+        "expectedBehavior": "Should fit within card boundaries, no overflow"
+      },
+      "walletActions": {
+        "selector": ".wallet-actions",
+        "expectedBehavior": "Buttons should stack vertically on mobile, side-by-side on desktop"
+      },
+      "createWalletButton": {
+        "selector": "button",
+        "expectedBehavior": "Minimum height 44px on mobile for touch targets"
+      }
+    },
+    "dashboard": {
+      "actionButtons": {
+        "selector": ".wallet-actions button",
+        "expectedBehavior": "Should fill container width, proper padding, no text overflow"
+      },
+      "terminalBoxes": {
+        "selector": ".terminal-box",
+        "expectedBehavior": "Should scale properly, maintain aspect ratio"
+      },
+      "statsGrid": {
+        "selector": ".stats-grid",
+        "expectedBehavior": "Should reflow from 4 columns to 2 on mobile"
+      },
+      "headerButtons": {
+        "selector": ".header-buttons",
+        "expectedBehavior": "Should remain visible and clickable on all sizes"
+      }
+    }
+  }
+}

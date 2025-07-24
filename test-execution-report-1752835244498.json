@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-07-18T10:40:44.498Z",
+  "duration": 392,
+  "environment": {
+    "node": "v24.3.0",
+    "apiServer": "running"
+  },
+  "services": {},
+  "tests": {},
+  "errors": [
+    {
+      "phase": "environment",
+      "error": "Missing file: src/server/modules/index.js",
+      "fix": "Ensure all files are properly committed"
+    }
+  ],
+  "recommendations": [],
+  "summary": {
+    "canDeploy": true,
+    "totalErrors": 1,
+    "criticalErrors": 0
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "summary": {
+    "timestamp": "2025-07-18T10:41:01.678Z",
+    "duration": 2678,
+    "total": 18,
+    "passed": 14,
+    "failed": 2,
+    "skipped": 2,
+    "criticalFailures": 0,
+    "success": true
+  },
+  "criticalFailures": [],
+  "tests": [
+    {
+      "category": "Critical",
+      "name": "Seed Generation 12-word",
+      "result": "passed",
+      "details": {
+        "duration": 186,
+        "mnemonicPreview": "live awful cross..."
+      },
+      "timestamp": 1752835261871
+    },
+    {
+      "category": "Critical",
+      "name": "Seed Generation 24-word",
+      "result": "passed",
+      "details": {
+        "duration": 152
+      },
+      "timestamp": 1752835262024
+    },
+    {
+      "category": "Critical",
+      "name": "Response Structure",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835262128
+    },
+    {
+      "category": "Critical",
+      "name": "Wallet Import",
+      "result": "failed",
+      "details": {
+        "error": "Missing addresses: segwit, taproot, legacy, nestedSegwit, spark"
+      },
+      "timestamp": 1752835262203
+    },
+    {
+      "category": "Critical",
+      "name": "Endpoint: Health Check",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835262207
+    },
+    {
+      "category": "Critical",
+      "name": "Endpoint: Generate Endpoint",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835262278
+    },
+    {
+      "category": "UserSim",
+      "name": "New User Journey",
+      "result": "passed",
+      "details": {
+        "steps": [
+          "Generate wallet",
+          "Check balance",
+          "Create account"
+        ]
+      },
+      "timestamp": 1752835263570
+    },
+    {
+      "category": "UserSim",
+      "name": "Import User Journey",
+      "result": "passed",
+      "details": {
+        "walletTypes": [
+          "moosh",
+          "xverse",
+          "sparrow",
+          "electrum"
+        ]
+      },
+      "timestamp": 1752835263848
+    },
+    {
+      "category": "UserSim",
+      "name": "Multi-Account Creation",
+      "result": "passed",
+      "details": {
+        "accountsCreated": 3
+      },
+      "timestamp": 1752835264044
+    },
+    {
+      "category": "Backend",
+      "name": "Cache Service",
+      "result": "skipped",
+      "details": {
+        "reason": "Requires direct module access"
+      },
+      "timestamp": 1752835264049
+    },
+    {
+      "category": "Backend",
+      "name": "Portfolio Service",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835264054
+    },
+    {
+      "category": "Backend",
+      "name": "Sync Service",
+      "result": "skipped",
+      "details": {
+        "reason": "Requires integration"
+      },
+      "timestamp": 1752835264054
+    },
+    {
+      "category": "Performance",
+      "name": "Seed Generation Speed",
+      "result": "passed",
+      "details": {
+        "iterations": 5,
+        "avgTime": "51ms",
+        "maxTime": "64ms",
+        "times": [
+          53,
+          50,
+          64,
+          43,
+          45
+        ]
+      },
+      "timestamp": 1752835264309
+    },
+    {
+      "category": "Performance",
+      "name": "Concurrent Requests",
+      "result": "passed",
+      "details": {
+        "requests": 10,
+        "duration": "11ms"
+      },
+      "timestamp": 1752835264325
+    },
+    {
+      "category": "ErrorRecovery",
+      "name": "Invalid strength",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835264340
+    },
+    {
+      "category": "ErrorRecovery",
+      "name": "Invalid mnemonic",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835264344
+    },
+    {
+      "category": "ErrorRecovery",
+      "name": "Missing parameters",
+      "result": "passed",
+      "details": {},
+      "timestamp": 1752835264346
+    },
+    {
+      "category": "ErrorRecovery",
+      "name": "404 Handling",
+      "result": "failed",
+      "details": {
+        "error": "API request failed: invalid json response body at http://localhost:3001/api/non-existent reason: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      },
+      "timestamp": 1752835264356
+    }
+  ],
+  "errors": []
+}

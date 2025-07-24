@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-07-16T14:18:36.398Z",
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "warnings": 1
+  },
+  "results": [
+    {
+      "timestamp": "2025-07-16T14:17:52.113Z",
+      "test": "API Health Check",
+      "status": "PASS",
+      "details": "API version 1.0.0 is running"
+    },
+    {
+      "timestamp": "2025-07-16T14:17:52.685Z",
+      "test": "Wallet Generation",
+      "status": "PASS",
+      "details": "All address types generated"
+    },
+    {
+      "timestamp": "2025-07-16T14:17:52.685Z",
+      "test": "Address Types",
+      "status": "INFO",
+      "details": "SegWit: bc1qxzqwdf..., Taproot: bc1pncmx2v..., Legacy: 1JBjQXVQD4..., Nested: 3MjzAvG9Vm..."
+    },
+    {
+      "timestamp": "2025-07-16T14:17:53.221Z",
+      "test": "Custom Path Derivation",
+      "status": "PASS",
+      "details": "Generated 3 addresses for path m/84'/0'/0'"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:33.657Z",
+      "test": "Import with Detection",
+      "status": "PASS",
+      "details": "All addresses generated on import"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:34.167Z",
+      "test": "Frontend Load",
+      "status": "PASS",
+      "details": "Index page loads correctly"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:34.702Z",
+      "test": "WalletDetector Class",
+      "status": "PASS",
+      "details": "Class found in JavaScript file"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:34.702Z",
+      "test": "Detection Methods",
+      "status": "PASS",
+      "details": "Import detection methods found"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:34.704Z",
+      "test": "Fix Addresses Button",
+      "status": "WARN",
+      "details": "Found 2 references to Fix Addresses"
+    },
+    {
+      "timestamp": "2025-07-16T14:18:36.398Z",
+      "test": "External API Access",
+      "status": "PASS",
+      "details": "Mempool.space accessible (block height: 905830)"
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "id": "ef-001-core-dom-factory",
+  "name": "ElementFactory",
+  "type": "utility-class",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:11-105",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Professional DOM element creation factory pattern providing a clean, chainable API for building UI components without direct DOM manipulation",
+  "architecture": {
+    "pattern": "Factory Pattern",
+    "paradigm": "Functional Object Creation",
+    "stateManagement": "Stateless",
+    "threading": "Single-threaded (JavaScript)",
+    "memoryModel": "Garbage Collected"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": [],
+    "browser": ["document", "Node", "HTMLElement"],
+    "polyfills": []
+  },
+  "methods": {
+    "create": {
+      "purpose": "Core factory method for creating any DOM element",
+      "parameters": {
+        "tag": {
+          "type": "string",
+          "required": true,
+          "description": "HTML tag name",
+          "examples": ["div", "span", "button"]
+        },
+        "attrs": {
+          "type": "object",
+          "required": false,
+          "default": "{}",
+          "description": "Element attributes and properties",
+          "subProperties": {
+            "style": "Object with CSS properties or string",
+            "dataset": "Object with data-* attributes",
+            "on*": "Event handlers (onClick, onMouseOver, etc)",
+            "className": "CSS class string",
+            "*": "Any other HTML attribute"
+          }
+        },
+        "children": {
+          "type": "array",
+          "required": false,
+          "default": "[]",
+          "description": "Child elements or text content",
+          "acceptedTypes": ["string", "number", "Node", "Node[]", "null", "undefined"]
+        }
+      },
+      "returns": {
+        "type": "HTMLElement",
+        "description": "Configured DOM element with attributes and children"
+      },
+      "complexity": {
+        "time": "O(n)",
+        "space": "O(n)",
+        "where": "n = number of children + attributes"
+      }
+    },
+    "div": {
+      "purpose": "Convenience method for creating div elements",
+      "delegates": "create('div', attrs, children)"
+    },
+    "span": {
+      "purpose": "Convenience method for creating span elements",
+      "delegates": "create('span', attrs, children)"
+    },
+    "button": {
+      "purpose": "Convenience method for creating button elements",
+      "delegates": "create('button', attrs, children)"
+    },
+    "input": {
+      "purpose": "Convenience method for creating input elements",
+      "delegates": "create('input', attrs)",
+      "note": "No children parameter as inputs are void elements"
+    },
+    "img": {
+      "purpose": "Convenience method for creating img elements",
+      "delegates": "create('img', attrs)",
+      "note": "No children parameter as images are void elements"
+    },
+    "h1": {
+      "purpose": "Convenience method for creating h1 elements",
+      "delegates": "create('h1', attrs, children)"
+    },
+    "h2": {
+      "purpose": "Convenience method for creating h2 elements",
+      "delegates": "create('h2', attrs, children)"
+    },
+    "h3": {
+      "purpose": "Convenience method for creating h3 elements",
+      "delegates": "create('h3', attrs, children)"
+    },
+    "p": {
+      "purpose": "Convenience method for creating paragraph elements",
+      "delegates": "create('p', attrs, children)"
+    },
+    "label": {
+      "purpose": "Convenience method for creating label elements",
+      "delegates": "create('label', attrs, children)"
+    },
+    "textarea": {
+      "purpose": "Convenience method for creating textarea elements",
+      "delegates": "create('textarea', attrs, children)"
+    },
+    "nav": {
+      "purpose": "Convenience method for creating nav elements",
+      "delegates": "create('nav', attrs, children)"
+    },
+    "br": {
+      "purpose": "Convenience method for creating br elements",
+      "delegates": "create('br', attrs)",
+      "note": "No children parameter as br is a void element"
+    }
+  },
+  "performance": {
+    "characteristics": {
+      "memoryFootprint": "Minimal - stateless utility class",
+      "executionSpeed": "Native DOM API speed",
+      "gcPressure": "Low - creates elements on demand"
+    },
+    "optimizations": [
+      "Uses native DOM APIs directly",
+      "No virtual DOM overhead",
+      "Efficient attribute setting",
+      "Handles nested arrays without recursion"
+    ],
+    "bottlenecks": [
+      "Large child arrays may cause reflows",
+      "Style object merging on each call"
+    ]
+  },
+  "security": {
+    "vulnerabilities": [],
+    "mitigations": [
+      "No innerHTML usage prevents XSS",
+      "Text content properly escaped via createTextNode",
+      "Event handlers attached via addEventListener"
+    ],
+    "sanitization": "Relies on browser's native sanitization"
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "create() with all attribute types",
+      "Nested children handling",
+      "Event handler attachment",
+      "Style object vs string handling"
+    ],
+    "edgeCases": [
+      "null/undefined children",
+      "Empty arrays",
+      "Invalid tag names",
+      "Circular references in children"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER use innerHTML - always use textContent or appendChild",
+      "Always handle null/undefined children gracefully",
+      "Event handlers must use addEventListener, not onclick attributes",
+      "Style can be object OR string - handle both cases"
+    ],
+    "commonMistakes": [
+      "Forgetting to handle nested arrays in children",
+      "Not checking for Node instance before appendChild",
+      "Assuming all on* properties are events (onload is special)",
+      "Not handling dataset attributes properly"
+    ],
+    "bestPractices": [
+      "Use specific convenience methods (div, span) over generic create",
+      "Pass event handlers in attrs with on* prefix",
+      "Use dataset object for data-* attributes",
+      "Prefer object style over string for programmatic styling"
+    ],
+    "dependencies": [
+      "Used by ALL UI components in the application",
+      "Foundation of the entire rendering system",
+      "Breaking changes here affect EVERYTHING"
+    ]
+  },
+  "codeEvolution": {
+    "previousVersions": [],
+    "migrationNotes": "Version 2.0 complete rewrite",
+    "deprecations": [],
+    "futureConsiderations": [
+      "Add SVG element support",
+      "Consider memoization for repeated creates",
+      "Add fragment support for better performance"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@memory/mcp",
+  "type": "memory-monitor",
+  "config": {
+    "targetFile": "public/js/moosh-wallet.js",
+    "thresholds": {
+      "heap": 500000000,
+      "nodes": 50000,
+      "listeners": 1000
+    },
+    "splitSuggestions": true,
+    "realtime": true
+  }
+}

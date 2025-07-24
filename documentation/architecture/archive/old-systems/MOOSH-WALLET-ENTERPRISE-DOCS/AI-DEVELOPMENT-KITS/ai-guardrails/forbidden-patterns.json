@@ -1,0 +1,253 @@
+{
+  "version": "1.0.0",
+  "description": "Forbidden patterns that should never appear in MOOSH Wallet code",
+  "patterns": [
+    {
+      "id": "no-react-jsx",
+      "name": "React/JSX Syntax",
+      "severity": "critical",
+      "patterns": [
+        "import React",
+        "from 'react'",
+        "from \"react\"",
+        "<[A-Z][a-zA-Z]*",
+        "setState\\(",
+        "useState\\(",
+        "useEffect\\(",
+        "componentDidMount",
+        "componentWillUnmount",
+        "render\\(\\) {[\\s\\S]*return \\(",
+        "\\.jsx",
+        "React\\.",
+        "props\\.",
+        "this\\.props"
+      ],
+      "message": "MOOSH Wallet is vanilla JavaScript. No React/JSX allowed.",
+      "suggestion": "Use ElementFactory ($) for DOM creation"
+    },
+    {
+      "id": "no-innerhtml",
+      "name": "innerHTML Usage",
+      "severity": "critical",
+      "patterns": [
+        "\\.innerHTML\\s*=",
+        "\\.innerHTML\\s*\\+=",
+        "insertAdjacentHTML",
+        "outerHTML\\s*=",
+        "document\\.write\\("
+      ],
+      "message": "innerHTML is forbidden for XSS prevention",
+      "suggestion": "Use ElementFactory methods or textContent"
+    },
+    {
+      "id": "no-modern-syntax",
+      "name": "Unsupported Modern Syntax",
+      "severity": "high",
+      "patterns": [
+        "\\?\\.\\[",
+        "\\?\\.",
+        "\\?\\?",
+        "import\\s+.*\\s+from",
+        "export\\s+default",
+        "export\\s+{",
+        "async\\s+\\(",
+        "\\*\\*=",
+        "@@",
+        "#private"
+      ],
+      "message": "This modern syntax is not used in MOOSH Wallet",
+      "suggestion": "Use patterns consistent with existing codebase"
+    },
+    {
+      "id": "no-external-deps",
+      "name": "External Dependencies",
+      "severity": "critical",
+      "patterns": [
+        "require\\(['\"](?!\\.|\\.\\.)",
+        "import\\s+.*\\s+from\\s+['\"](?!\\.|\\.\\.)",
+        "npm install",
+        "yarn add",
+        "node_modules",
+        "import\\s+.*\\s+from\\s+['\"]jquery",
+        "import\\s+.*\\s+from\\s+['\"]lodash",
+        "\\$\\(document\\)",
+        "_\\."
+      ],
+      "message": "MOOSH Wallet has zero external dependencies",
+      "suggestion": "Implement functionality using vanilla JavaScript"
+    },
+    {
+      "id": "no-global-pollution",
+      "name": "Global Variable Creation",
+      "severity": "high",
+      "patterns": [
+        "^(?!.*\\bwindow\\.)\\w+\\s*=\\s*(?!.*function)",
+        "window\\.[a-z][a-zA-Z]*\\s*=",
+        "global\\.",
+        "globalThis\\."
+      ],
+      "message": "Avoid creating global variables",
+      "suggestion": "Use module pattern or component properties"
+    },
+    {
+      "id": "no-eval",
+      "name": "Eval and Related Functions",
+      "severity": "critical",
+      "patterns": [
+        "\\beval\\(",
+        "new Function\\(",
+        "setTimeout\\(['\"][^'\"]+['\"]",
+        "setInterval\\(['\"][^'\"]+['\"]",
+        "execScript\\("
+      ],
+      "message": "eval() and similar functions are security risks",
+      "suggestion": "Use direct function references"
+    },
+    {
+      "id": "no-private-key-storage",
+      "name": "Private Key Storage",
+      "severity": "critical",
+      "patterns": [
+        "privateKey\\s*=",
+        "private_key\\s*=",
+        "localStorage\\.setItem\\(['\"].*(?:private|key|seed|mnemonic)",
+        "sessionStorage\\.setItem\\(['\"].*(?:private|key|seed|mnemonic)",
+        "\\.privateKey\\s*=",
+        "storePrivateKey",
+        "savePrivateKey",
+        "persistPrivateKey"
+      ],
+      "message": "NEVER store private keys or seeds",
+      "suggestion": "Private keys should only exist temporarily in memory"
+    },
+    {
+      "id": "no-console-sensitive",
+      "name": "Console Logging Sensitive Data",
+      "severity": "high",
+      "patterns": [
+        "console\\.log\\(.*(?:password|privateKey|seed|mnemonic)",
+        "console\\.error\\(.*(?:password|privateKey|seed|mnemonic)",
+        "console\\.warn\\(.*(?:password|privateKey|seed|mnemonic)",
+        "console\\.info\\(.*(?:password|privateKey|seed|mnemonic)"
+      ],
+      "message": "Never log sensitive data to console",
+      "suggestion": "Remove console statements or log only non-sensitive info"
+    },
+    {
+      "id": "no-sync-heavy-ops",
+      "name": "Synchronous Heavy Operations",
+      "severity": "medium",
+      "patterns": [
+        "while\\s*\\(true\\)",
+        "for\\s*\\(\\s*;\\s*;\\s*\\)",
+        "JSON\\.parse\\(.*\\)(?!.*\\.then)",
+        "JSON\\.stringify\\(.*\\)(?!.*\\.then).*length\\s*>\\s*10000"
+      ],
+      "message": "Heavy synchronous operations block the UI",
+      "suggestion": "Use async operations or Web Workers for heavy tasks"
+    },
+    {
+      "id": "no-direct-style-manipulation",
+      "name": "Direct Style String Manipulation",
+      "severity": "low",
+      "patterns": [
+        "\\.style\\s*=\\s*['\"]",
+        "\\.className\\s*\\+=",
+        "\\.classList\\.add\\(['\"][^'\"]*\\s+[^'\"]*['\"]"
+      ],
+      "message": "Use object style or individual properties",
+      "suggestion": "Use element.style.property = value or style objects"
+    },
+    {
+      "id": "no-api-keys",
+      "name": "API Keys in Code",
+      "severity": "critical",
+      "patterns": [
+        "api[_-]?key\\s*[:=]\\s*['\"][^'\"]+['\"]",
+        "apiKey\\s*[:=]\\s*['\"][^'\"]+['\"]",
+        "API_KEY\\s*[:=]\\s*['\"][^'\"]+['\"]",
+        "Authorization\\s*:\\s*['\"]Bearer\\s+[^'\"]+['\"]",
+        "x-api-key\\s*:\\s*['\"][^'\"]+['\"]"
+      ],
+      "message": "Never hardcode API keys in frontend code",
+      "suggestion": "Use backend proxy for authenticated API calls"
+    },
+    {
+      "id": "no-jquery-patterns",
+      "name": "jQuery Patterns",
+      "severity": "high",
+      "patterns": [
+        "\\$\\(['\"]#",
+        "\\$\\(['\"]\\.",
+        "\\$\\(this\\)",
+        "\\.click\\(function",
+        "\\.on\\(['\"]click['\"]",
+        "\\.fadeIn\\(",
+        "\\.fadeOut\\(",
+        "\\.animate\\(",
+        "\\$\\.ajax\\("
+      ],
+      "message": "jQuery is not used in MOOSH Wallet",
+      "suggestion": "Use vanilla JavaScript DOM methods"
+    },
+    {
+      "id": "no-mutation-observers",
+      "name": "Complex Browser APIs",
+      "severity": "medium",
+      "patterns": [
+        "new MutationObserver",
+        "new ResizeObserver",
+        "new IntersectionObserver",
+        "new PerformanceObserver"
+      ],
+      "message": "Avoid complex observer patterns not used in codebase",
+      "suggestion": "Use simpler event-based approaches"
+    },
+    {
+      "id": "no-web-components",
+      "name": "Web Components",
+      "severity": "high",
+      "patterns": [
+        "customElements\\.define",
+        "class\\s+\\w+\\s+extends\\s+HTMLElement",
+        "shadowRoot",
+        "attachShadow",
+        "<slot",
+        "</slot>"
+      ],
+      "message": "Web Components are not used in MOOSH Wallet",
+      "suggestion": "Use the Component class pattern instead"
+    },
+    {
+      "id": "no-css-in-js",
+      "name": "CSS-in-JS Libraries",
+      "severity": "high",
+      "patterns": [
+        "styled\\.",
+        "styled\\(",
+        "css`",
+        "createGlobalStyle",
+        "keyframes`",
+        "@emotion",
+        "makeStyles\\("
+      ],
+      "message": "CSS is managed by StyleManager only",
+      "suggestion": "Add styles to StyleManager class"
+    }
+  ],
+  "autofix": {
+    "enabled": true,
+    "rules": [
+      {
+        "pattern": "\\.innerHTML\\s*=\\s*['\"]([^'\"]*)['\"]",
+        "replacement": ".textContent = '$1'",
+        "message": "Replaced innerHTML with textContent"
+      },
+      {
+        "pattern": "console\\.log\\((.*(?:password|key|seed).*?)\\)",
+        "replacement": "// console.log removed for security",
+        "message": "Removed console.log with sensitive data"
+      }
+    ]
+  }
+}

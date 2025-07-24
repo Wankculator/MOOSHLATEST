@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-07-07T01:15:39.943Z",
+  "results": {
+    "mainPage": {
+      "passed": [
+        "✅ Password input fields found in code",
+        "✅ Create Wallet button found in code",
+        "✅ Import Wallet button found in code",
+        "✅ Password toggle functionality found in code",
+        "✅ Form validation found in code",
+        "✅ Modal/Dialog system found in code",
+        "✅ Dashboard navigation found in code",
+        "✅ Responsive breakpoints found in code",
+        "✅ Touch-friendly button sizes found in code",
+        "✅ Mobile-first CSS found in code"
+      ],
+      "failed": [
+        "❌ Error testing main page: connect ECONNREFUSED 127.0.0.1:3333"
+      ],
+      "warnings": []
+    },
+    "dashboard": {
+      "passed": [
+        "✅ Balance display implementation found",
+        "✅ Send function implementation found",
+        "✅ Receive function implementation found",
+        "✅ Transaction history implementation found",
+        "✅ QR code generation implementation found",
+        "✅ Settings panel implementation found",
+        "✅ Network selector implementation found"
+      ],
+      "failed": [],
+      "warnings": []
+    },
+    "responsive": {
+      "passed": [
+        "✅ Mobile viewport meta tag implemented",
+        "✅ Flexible grid system implemented",
+        "✅ Dynamic font scaling implemented",
+        "✅ Container padding adjustments implemented",
+        "✅ Touch event handlers implemented"
+      ],
+      "failed": [],
+      "warnings": []
+    }
+  },
+  "summary": {
+    "passed": 22,
+    "warnings": 0,
+    "failed": 1
+  },
+  "recommendations": []
+}

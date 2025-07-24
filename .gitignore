@@ -1,0 +1,148 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+
+# Testing
+coverage/
+.nyc_output
+test-results/
+*.lcov
+.coverage
+.pytest_cache/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+
+# Backup files
+*.backup
+*.bak
+*.old
+*-backup*
+*.orig
+backup/
+
+# Security - NEVER commit these
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+secrets/
+private/
+.secrets
+*.secret
+
+# Bitcoin/Crypto specific
+wallet.dat
+*.wallet
+seed.txt
+mnemonic.txt
+private-keys/
+*.priv
+
+# Local development
+.local/
+local-data/
+*.local.*
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Package files
+*.tgz
+*.zip
+*.tar.gz
+*.rar
+
+# Documentation build
+docs/_build/
+docs/.vitepress/dist/
+
+# Miscellaneous
+.sass-cache/
+.connect.lock
+.lock-wscript
+.node_repl_history
+.yarn-integrity
+
+# Project specific
+moosh-wallet.js.backup*
+fix-wsl-network.ps1
+start-wallet-*.sh
+start-wallet-*.bat
+manual-test-*.js
+test-*.html
+user-*.md
+*-report.json
+*-report.md
+
+# Keep these test result structures
+!test-results/.gitkeep
+
+# Claude/AI specific
+.claude/
+claude-artifacts/
+
+# Personal notes
+notes.txt
+TODO.txt
+personal/

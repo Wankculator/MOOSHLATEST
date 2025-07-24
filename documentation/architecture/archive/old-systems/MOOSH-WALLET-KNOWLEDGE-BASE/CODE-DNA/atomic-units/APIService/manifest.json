@@ -1,0 +1,286 @@
+{
+  "id": "api-001-external-service",
+  "name": "APIService",
+  "type": "service-layer",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:2217-2700",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "External API integration layer for blockchain data, price feeds, and backend wallet services with fallback strategies",
+  "architecture": {
+    "pattern": "Service Layer with Fallback Pattern",
+    "paradigm": "Async/await with error handling",
+    "stateManagement": "Caches data in StateManager",
+    "threading": "Async operations",
+    "memoryModel": "Stateful with StateManager reference"
+  },
+  "dependencies": {
+    "external": [
+      "CoinGecko API",
+      "Blockstream API",
+      "BlockCypher API",
+      "Mempool.space API",
+      "Local backend server"
+    ],
+    "internal": ["StateManager"],
+    "browser": ["fetch", "AbortController"],
+    "runtime": ["window.location", "window.MOOSH_API_URL"]
+  },
+  "properties": {
+    "stateManager": {
+      "type": "StateManager",
+      "description": "Reference for state access and caching"
+    },
+    "baseURL": {
+      "type": "string",
+      "description": "Backend server URL (dynamic based on host)"
+    },
+    "endpoints": {
+      "type": "object",
+      "properties": {
+        "coingecko": "https://api.coingecko.com/api/v3",
+        "blockstream": "mainnet/testnet API URLs",
+        "blockcypher": "mainnet/testnet API URLs"
+      }
+    }
+  },
+  "methods": {
+    "constructor": {
+      "purpose": "Initialize service with dynamic URL configuration",
+      "logic": [
+        "Detect localhost vs remote host",
+        "Set baseURL dynamically",
+        "Configure mainnet/testnet endpoints"
+      ],
+      "urlStrategy": {
+        "localhost": "http://localhost:3001",
+        "remote": "http://{hostname}:3001",
+        "override": "window.MOOSH_API_URL"
+      }
+    },
+    "fetchBitcoinPrice": {
+      "purpose": "Get current Bitcoin price with caching",
+      "endpoint": "CoinGecko /simple/price",
+      "cache": {
+        "duration": "5 minutes (300000ms)",
+        "storage": "StateManager apiCache"
+      },
+      "returns": {
+        "usd": "Price in USD",
+        "usd_24h_change": "24-hour change percentage"
+      },
+      "fallback": "{ usd: 0, usd_24h_change: 0 }"
+    },
+    "fetchBlockHeight": {
+      "purpose": "Get current blockchain height with fallbacks",
+      "endpoints": [
+        "Blockstream /blocks/tip/height",
+        "Mempool.space /api/blocks/tip/height",
+        "BlockCypher /v1/btc/main"
+      ],
+      "timeout": "5000ms per endpoint",
+      "fallbackStrategy": "Try each endpoint in order",
+      "cache": "StateManager apiCache.blockHeight"
+    },
+    "fetchAddressBalance": {
+      "purpose": "Get Bitcoin address balance",
+      "primaryEndpoint": "Blockstream /address/{address}",
+      "fallbackEndpoint": "BlockCypher /addrs/{address}/balance",
+      "returns": {
+        "balance": "Satoshi balance",
+        "txCount": "Transaction count"
+      },
+      "errorHandling": "Returns { balance: 0, txCount: 0 } on failure"
+    },
+    "fetchTransactionHistory": {
+      "purpose": "Get transaction list for address",
+      "endpoints": [
+        "Blockstream /address/{address}/txs",
+        "Mempool.space /api/address/{address}/txs"
+      ],
+      "parameters": {
+        "address": "Bitcoin address",
+        "limit": "Max transactions (default: 10)"
+      },
+      "timeout": "10000ms per endpoint",
+      "dataTransform": "Maps to simplified tx format"
+    },
+    "calculateTxValue": {
+      "purpose": "Calculate net value change for address in transaction",
+      "logic": [
+        "Sum outputs to address (incoming)",
+        "Subtract inputs from address (outgoing)",
+        "Return net value change"
+      ],
+      "internal": true
+    },
+    "fetchUTXOs": {
+      "purpose": "Get unspent transaction outputs",
+      "endpoint": "Blockstream /address/{address}/utxo",
+      "fallback": "BlockCypher with pagination",
+      "returns": "Array of UTXO objects"
+    },
+    "estimateFee": {
+      "purpose": "Get fee estimates for transactions",
+      "endpoints": [
+        "Mempool.space /api/v1/fees/recommended",
+        "BlockCypher fee API"
+      ],
+      "returns": {
+        "fastestFee": "Next block",
+        "halfHourFee": "~30 minutes",
+        "hourFee": "~60 minutes"
+      }
+    },
+    "broadcastTransaction": {
+      "purpose": "Submit signed transaction to network",
+      "endpoint": "Backend /api/broadcast",
+      "fallback": "Direct to Blockstream/Mempool",
+      "validation": "Checks tx format before sending"
+    },
+    "importSparkWallet": {
+      "purpose": "Import wallet using Spark protocol",
+      "endpoint": "Backend /api/spark/import",
+      "method": "POST",
+      "payload": "{ mnemonic: string }",
+      "returns": "Spark wallet data"
+    },
+    "getSparkBalance": {
+      "purpose": "Get Spark protocol balance",
+      "primaryEndpoint": "Backend /api/balance/{address}",
+      "fallback": [
+        "Direct Blockstream API call",
+        "Return zero balance"
+      ],
+      "returns": {
+        "balance": "BTC balance string",
+        "unconfirmed": "Pending balance",
+        "total": "Combined balance"
+      }
+    },
+    "getSparkTransactions": {
+      "purpose": "Get Spark protocol transactions",
+      "endpoint": "Backend /api/transactions/{address}",
+      "returns": "Transaction array"
+    }
+  },
+  "errorHandling": {
+    "strategy": "Graceful degradation with fallbacks",
+    "patterns": [
+      "Try primary endpoint",
+      "Fallback to alternatives",
+      "Cache last known good data",
+      "Return safe defaults"
+    ],
+    "logging": "Console warnings for failures"
+  },
+  "caching": {
+    "location": "StateManager apiCache",
+    "strategy": {
+      "prices": "5-minute TTL",
+      "blockHeight": "No TTL, always fresh",
+      "balances": "No caching (real-time)"
+    }
+  },
+  "performance": {
+    "timeouts": {
+      "default": "10 seconds",
+      "blockHeight": "5 seconds",
+      "price": "No explicit timeout"
+    },
+    "concurrency": "Sequential fallbacks",
+    "abortControl": "AbortController for cancellation"
+  },
+  "security": {
+    "cors": "Relies on API CORS headers",
+    "authentication": "None (public APIs)",
+    "rateLimiting": "Depends on external APIs",
+    "considerations": [
+      "No API keys exposed",
+      "Public blockchain data only",
+      "Backend server for sensitive ops"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Price fetching with cache",
+      "Balance queries with fallback",
+      "Transaction broadcasting",
+      "Network switching (mainnet/testnet)"
+    ],
+    "edgeCases": [
+      "All APIs down",
+      "Slow network timeouts",
+      "Invalid addresses",
+      "Rate limit exceeded"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER expose private keys to APIs",
+      "ALWAYS handle network failures gracefully",
+      "Cache prices to avoid rate limits",
+      "Test fallback chains thoroughly",
+      "Respect API rate limits"
+    ],
+    "commonMistakes": [
+      "Forgetting timeout handling",
+      "Not checking response.ok",
+      "Assuming API availability",
+      "Breaking fallback chains",
+      "Ignoring CORS issues"
+    ],
+    "bestPractices": [
+      "Use AbortController for timeouts",
+      "Implement exponential backoff",
+      "Cache when appropriate",
+      "Log failures for debugging",
+      "Provide user feedback on failures"
+    ],
+    "dependencies": [
+      "StateManager for caching",
+      "Backend server for Spark",
+      "Multiple external APIs",
+      "Network connectivity"
+    ]
+  },
+  "apiEndpoints": {
+    "external": {
+      "coingecko": {
+        "base": "https://api.coingecko.com/api/v3",
+        "rateLimit": "10-50 calls/minute",
+        "authentication": "None"
+      },
+      "blockstream": {
+        "mainnet": "https://blockstream.info/api",
+        "testnet": "https://blockstream.info/testnet/api",
+        "rateLimit": "No official limit",
+        "authentication": "None"
+      },
+      "blockcypher": {
+        "mainnet": "https://api.blockcypher.com/v1/btc/main",
+        "testnet": "https://api.blockcypher.com/v1/btc/test3",
+        "rateLimit": "200/hour without token",
+        "authentication": "Optional token"
+      },
+      "mempool": {
+        "base": "https://mempool.space/api",
+        "rateLimit": "No official limit",
+        "authentication": "None"
+      }
+    },
+    "internal": {
+      "backend": {
+        "base": "http://localhost:3001",
+        "endpoints": [
+          "/api/spark/import",
+          "/api/balance/{address}",
+          "/api/transactions/{address}",
+          "/api/broadcast"
+        ]
+      }
+    }
+  }
+}

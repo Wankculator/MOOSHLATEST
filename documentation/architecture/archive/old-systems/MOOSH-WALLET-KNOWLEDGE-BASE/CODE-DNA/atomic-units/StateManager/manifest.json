@@ -1,0 +1,331 @@
+{
+  "id": "sm-001-core-state-manager",
+  "name": "StateManager",
+  "type": "core-service",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:1832-2212",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Central reactive state management system with LocalStorage persistence, event-driven updates, and multi-account management",
+  "architecture": {
+    "pattern": "Observer Pattern with Event Emitter",
+    "paradigm": "Reactive State Management",
+    "stateManagement": "Centralized with persistence",
+    "threading": "Single-threaded event loop",
+    "memoryModel": "In-memory with LocalStorage backup"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": [],
+    "browser": ["localStorage", "fetch"],
+    "runtime": ["window.MOOSH_API_URL"]
+  },
+  "stateStructure": {
+    "selectedMnemonic": {
+      "type": "number",
+      "default": 12,
+      "description": "12 or 24 word mnemonic selection"
+    },
+    "isMainnet": {
+      "type": "boolean",
+      "default": true,
+      "description": "Network selection"
+    },
+    "isSparkTheme": {
+      "type": "boolean",
+      "default": false,
+      "description": "Theme selection (deprecated?)"
+    },
+    "currentPage": {
+      "type": "string",
+      "default": "home",
+      "description": "Current route/page"
+    },
+    "navigationHistory": {
+      "type": "array",
+      "default": ["home"],
+      "description": "Navigation stack"
+    },
+    "walletPassword": {
+      "type": "string|null",
+      "default": null,
+      "description": "Temporary wallet password"
+    },
+    "generatedSeed": {
+      "type": "array|null",
+      "default": null,
+      "description": "Temporary seed phrase during creation"
+    },
+    "verificationWords": {
+      "type": "array",
+      "default": [],
+      "description": "Words for seed verification"
+    },
+    "walletType": {
+      "type": "string|null",
+      "default": null,
+      "description": "'create' or 'import'"
+    },
+    "accounts": {
+      "type": "array",
+      "default": [],
+      "description": "Multi-account wallet array",
+      "persisted": true
+    },
+    "currentAccountId": {
+      "type": "string|null",
+      "default": null,
+      "description": "Active account identifier",
+      "persisted": true
+    },
+    "walletData": {
+      "type": "object",
+      "default": {
+        "addresses": {},
+        "balances": {},
+        "transactions": []
+      },
+      "description": "Wallet data cache"
+    },
+    "isBalanceHidden": {
+      "type": "boolean",
+      "default": false,
+      "description": "Privacy mode toggle",
+      "persisted": true
+    },
+    "apiCache": {
+      "type": "object",
+      "default": {
+        "prices": {},
+        "blockHeight": null,
+        "lastUpdate": null
+      },
+      "description": "API response cache",
+      "persisted": true
+    }
+  },
+  "methods": {
+    "get": {
+      "purpose": "Retrieve state value by key",
+      "parameters": {
+        "key": "State property name"
+      },
+      "returns": "State value or undefined"
+    },
+    "set": {
+      "purpose": "Update state value and emit change event",
+      "parameters": {
+        "key": "State property name",
+        "value": "New value"
+      },
+      "sideEffects": [
+        "Emits change event",
+        "Auto-persists if key in persistence list"
+      ]
+    },
+    "update": {
+      "purpose": "Batch update multiple state properties",
+      "parameters": {
+        "updates": "Object with key-value pairs"
+      }
+    },
+    "delete": {
+      "purpose": "Remove state property",
+      "parameters": {
+        "key": "State property name"
+      },
+      "sideEffects": ["Emits change event with undefined value"]
+    },
+    "on": {
+      "purpose": "Subscribe to state changes",
+      "parameters": {
+        "key": "State property to watch",
+        "callback": "Function(newValue, oldValue)"
+      }
+    },
+    "off": {
+      "purpose": "Unsubscribe from state changes",
+      "parameters": {
+        "key": "State property",
+        "callback": "Function reference to remove"
+      }
+    },
+    "emit": {
+      "purpose": "Trigger all listeners for a key",
+      "parameters": {
+        "key": "State property",
+        "newValue": "New value",
+        "oldValue": "Previous value"
+      },
+      "internal": true
+    },
+    "loadPersistedState": {
+      "purpose": "Load state from LocalStorage on init",
+      "sideEffects": ["Populates state from localStorage"]
+    },
+    "persistState": {
+      "purpose": "Save specific state properties to LocalStorage",
+      "persists": ["accounts", "currentAccountId", "isBalanceHidden", "apiCache"]
+    },
+    "createAccount": {
+      "purpose": "Create new wallet account from mnemonic",
+      "parameters": {
+        "name": "Account display name",
+        "mnemonic": "Seed phrase string or array",
+        "isImport": "Boolean flag for imported vs generated",
+        "walletType": "Wallet type identifier",
+        "selectedVariant": "Taproot variant selection"
+      },
+      "async": true,
+      "apiCalls": [
+        "/api/spark/import",
+        "/api/wallet/import"
+      ],
+      "returns": "Account object with addresses"
+    },
+    "switchAccount": {
+      "purpose": "Change active account",
+      "parameters": {
+        "accountId": "Account identifier"
+      },
+      "sideEffects": [
+        "Updates currentAccountId",
+        "Updates lastUsed timestamp",
+        "Emits accountSwitched event"
+      ]
+    },
+    "getCurrentAccount": {
+      "purpose": "Get currently active account",
+      "returns": "Account object or null"
+    },
+    "deleteAccount": {
+      "purpose": "Remove account from wallet",
+      "parameters": {
+        "accountId": "Account to delete"
+      },
+      "validation": "Cannot delete last account",
+      "sideEffects": ["Switches to first account if current deleted"]
+    },
+    "hashSeed": {
+      "purpose": "Create simple hash of seed for verification",
+      "parameters": {
+        "seed": "Seed phrase string or array"
+      },
+      "returns": "Base36 hash string",
+      "security": "NOT cryptographically secure"
+    },
+    "persistAccounts": {
+      "purpose": "Save accounts to LocalStorage",
+      "storage": "mooshAccounts"
+    },
+    "loadAccounts": {
+      "purpose": "Load accounts from LocalStorage",
+      "fallback": "Creates default account if none exist"
+    }
+  },
+  "eventSystem": {
+    "pattern": "Pub/Sub with key-based subscriptions",
+    "autoPersistedKeys": ["accounts", "currentAccountId", "isBalanceHidden", "apiCache"],
+    "customEvents": ["accountSwitched"]
+  },
+  "persistence": {
+    "strategy": "Selective LocalStorage persistence",
+    "keys": {
+      "mooshWalletState": "General state persistence",
+      "mooshAccounts": "Account-specific data"
+    },
+    "migration": "Handles legacy activeAccountIndex to currentAccountId"
+  },
+  "security": {
+    "considerations": [
+      "No private keys stored",
+      "Password stored temporarily in memory only",
+      "Seed phrases temporary during creation",
+      "Account identified by hash, not seed"
+    ],
+    "vulnerabilities": [],
+    "mitigations": [
+      "Sensitive data cleared after use",
+      "No persistence of secrets"
+    ]
+  },
+  "performance": {
+    "characteristics": {
+      "memoryFootprint": "Proportional to account count",
+      "eventOverhead": "O(n) where n = listeners per key",
+      "persistenceOverhead": "Synchronous localStorage writes"
+    },
+    "optimizations": [
+      "Selective persistence",
+      "Lazy loading of accounts",
+      "Event batching for updates"
+    ],
+    "bottlenecks": [
+      "Synchronous localStorage operations",
+      "No debouncing on rapid updates"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Account creation flow",
+      "State persistence/restoration",
+      "Event emission",
+      "Account switching"
+    ],
+    "edgeCases": [
+      "Corrupted localStorage data",
+      "Duplicate account IDs",
+      "Missing current account",
+      "API failures during account creation"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER store private keys or seeds in state",
+      "Always use set() method to trigger reactivity",
+      "Check persistence list before adding new keys",
+      "Account deletion must handle edge cases",
+      "API calls in createAccount are critical path"
+    ],
+    "commonMistakes": [
+      "Direct state mutation bypasses events",
+      "Forgetting to persist after account changes",
+      "Not handling API failures in createAccount",
+      "Assuming accounts array is never empty"
+    ],
+    "bestPractices": [
+      "Use getCurrentAccount() instead of direct access",
+      "Always check account exists before operations",
+      "Use batch updates with update() method",
+      "Handle localStorage quota errors"
+    ],
+    "dependencies": [
+      "APIService depends on StateManager",
+      "All Components use StateManager",
+      "Router reads/writes currentPage",
+      "Multi-account system is core feature"
+    ]
+  },
+  "codeEvolution": {
+    "duplicateMethods": [
+      "getCurrentAccount (lines 1994 and 2087)",
+      "deleteAccount (lines 1998 and 2191)"
+    ],
+    "migrationPatterns": [
+      "activeAccountIndex → currentAccountId",
+      "Index-based → ID-based accounts"
+    ],
+    "deprecations": [
+      "updateAccountIndicators method",
+      "isSparkTheme property"
+    ],
+    "futureConsiderations": [
+      "Add state versioning",
+      "Implement undo/redo",
+      "Add encryption for sensitive data",
+      "Move to IndexedDB for better performance"
+    ]
+  }
+}

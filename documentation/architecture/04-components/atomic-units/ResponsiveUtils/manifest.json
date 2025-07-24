@@ -1,0 +1,231 @@
+{
+  "id": "ru-001-responsive-utilities",
+  "name": "ResponsiveUtils",
+  "type": "utility-class",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:139-295",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Static utility class for responsive design, breakpoint management, and mobile-optimized component creation",
+  "architecture": {
+    "pattern": "Static Utility Class",
+    "paradigm": "Mobile-first responsive design",
+    "stateManagement": "Stateless",
+    "threading": "Single-threaded",
+    "memoryModel": "No instance creation"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": ["ElementFactory (via $ alias)"],
+    "browser": ["window.innerWidth"],
+    "runtime": []
+  },
+  "constants": {
+    "BREAKPOINTS": {
+      "xs": 320,
+      "sm": 375,
+      "md": 414,
+      "lg": 768,
+      "xl": 1024,
+      "xxl": 1440,
+      "xxxl": 1920,
+      "description": "Device width breakpoints in pixels"
+    }
+  },
+  "methods": {
+    "getBreakpoint": {
+      "purpose": "Determine current viewport breakpoint",
+      "returns": "Breakpoint name (xs|sm|md|lg|xl|xxl|xxxl)",
+      "logic": "Cascading width checks from smallest to largest"
+    },
+    "isMobile": {
+      "purpose": "Check if viewport is mobile size",
+      "returns": "boolean",
+      "includes": ["xs", "sm", "md"]
+    },
+    "isTablet": {
+      "purpose": "Check if viewport is tablet size",
+      "returns": "boolean",
+      "includes": ["lg"]
+    },
+    "isDesktop": {
+      "purpose": "Check if viewport is desktop size",
+      "returns": "boolean",
+      "includes": ["xl", "xxl", "xxxl"]
+    },
+    "getResponsiveValue": {
+      "purpose": "Return appropriate value based on device type",
+      "parameters": {
+        "mobileValue": "Value for mobile devices",
+        "tabletValue": "Value for tablets (optional)",
+        "desktopValue": "Value for desktop"
+      },
+      "fallback": "Tablet falls back to desktop value"
+    },
+    "createResponsiveStyle": {
+      "purpose": "Merge base styles with breakpoint-specific overrides",
+      "parameters": {
+        "styles": "Object with base and breakpoint properties"
+      },
+      "returns": "Merged style object",
+      "example": {
+        "base": { "color": "red" },
+        "xs": { "fontSize": "12px" },
+        "lg": { "fontSize": "16px" }
+      }
+    },
+    "addTouchFeedback": {
+      "purpose": "Add touch interaction feedback to elements",
+      "parameters": {
+        "element": "DOM element to enhance"
+      },
+      "behavior": [
+        "Adds 'touch-active' class on touchstart",
+        "Removes after 150ms delay on touchend",
+        "Uses passive event listeners"
+      ],
+      "returns": "Enhanced element"
+    },
+    "createResponsiveButton": {
+      "purpose": "Create mobile-optimized button element",
+      "parameters": {
+        "attrs": "Button attributes",
+        "children": "Button content"
+      },
+      "features": [
+        "Minimum touch target size",
+        "Touch feedback on mobile",
+        "Responsive padding/sizing",
+        "Disabled tap highlight"
+      ],
+      "styles": {
+        "minHeight": "var(--touch-target)",
+        "touchAction": "manipulation",
+        "WebkitTapHighlightColor": "transparent"
+      }
+    },
+    "createResponsiveContainer": {
+      "purpose": "Create centered, max-width container",
+      "parameters": {
+        "children": "Container content",
+        "options": {
+          "maxWidth": "Maximum width (default: var(--container-lg))",
+          "padding": "Apply responsive padding (default: true)"
+        }
+      },
+      "styles": {
+        "padding": "clamp(1rem, 5vw, 2rem)",
+        "margin": "0 auto"
+      }
+    },
+    "createResponsiveGrid": {
+      "purpose": "Create auto-responsive grid layout",
+      "parameters": {
+        "items": "Grid items",
+        "options": {
+          "minItemWidth": "Minimum item width in pixels (default: 250)",
+          "gap": "Grid gap (default: var(--space-md))"
+        }
+      },
+      "cssGrid": "auto-fit with minmax for responsive columns"
+    },
+    "getResponsiveTextStyle": {
+      "purpose": "Get predefined text styles by type",
+      "parameters": {
+        "type": "title|subtitle|body|small|tiny"
+      },
+      "returns": "Style object with fontSize, lineHeight, fontWeight",
+      "styles": {
+        "title": { "fontSize": "var(--font-2xl)", "fontWeight": "700" },
+        "subtitle": { "fontSize": "var(--font-lg)", "fontWeight": "600" },
+        "body": { "fontSize": "var(--font-md)", "fontWeight": "400" },
+        "small": { "fontSize": "var(--font-sm)", "fontWeight": "400" },
+        "tiny": { "fontSize": "var(--font-xs)", "fontWeight": "400" }
+      }
+    }
+  },
+  "deviceCategories": {
+    "mobile": {
+      "breakpoints": ["xs", "sm", "md"],
+      "widths": "320px - 767px",
+      "description": "Phones and phablets"
+    },
+    "tablet": {
+      "breakpoints": ["lg"],
+      "widths": "768px - 1023px",
+      "description": "Tablets and small laptops"
+    },
+    "desktop": {
+      "breakpoints": ["xl", "xxl", "xxxl"],
+      "widths": "1024px+",
+      "description": "Desktops and large screens"
+    }
+  },
+  "performance": {
+    "characteristics": {
+      "memoryFootprint": "Zero - static class",
+      "executionSpeed": "Instant - simple calculations",
+      "caching": "None - always fresh values"
+    },
+    "optimizations": [
+      "Static methods avoid instantiation",
+      "Passive event listeners",
+      "CSS variables for dynamic values"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Breakpoint detection accuracy",
+      "Touch feedback timing",
+      "Grid responsiveness",
+      "Container scaling"
+    ],
+    "edgeCases": [
+      "Viewport resize during interaction",
+      "Touch events on non-touch devices",
+      "Very small or large viewports",
+      "CSS variable fallbacks"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER change breakpoint values - will break entire layout",
+      "Touch feedback must use passive listeners",
+      "Always return element from enhancement methods",
+      "CSS variables must match StyleManager definitions"
+    ],
+    "commonMistakes": [
+      "Using pixel values instead of CSS variables",
+      "Forgetting tablet fallback to desktop",
+      "Not handling touch events properly",
+      "Breaking the static utility pattern"
+    ],
+    "bestPractices": [
+      "Use CSS variables for all sizing",
+      "Test on actual devices, not just browser",
+      "Consider thumb reach on mobile",
+      "Maintain 44px minimum touch targets"
+    ],
+    "dependencies": [
+      "ElementFactory for DOM creation",
+      "StyleManager defines CSS variables",
+      "Used by all responsive components"
+    ]
+  },
+  "codeEvolution": {
+    "designDecisions": [
+      "Static class for zero overhead",
+      "Mobile-first breakpoint strategy",
+      "Touch feedback for better UX",
+      "CSS Grid for modern layouts"
+    ],
+    "futureConsiderations": [
+      "Add orientation detection",
+      "Support foldable devices",
+      "Add gesture utilities",
+      "Viewport unit polyfills"
+    ]
+  }
+}

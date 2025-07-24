@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOOSH Wallet - Modular Version</title>
+    <meta name="description" content="Professional-grade, non-custodial Bitcoin and Spark Protocol wallet with enterprise features">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/mobile-enhancements.css">
+</head>
+<body>
+    <!-- Main app container -->
+    <div id="app">
+        <!-- Loading screen (shown until app initializes) -->
+        <div class="loading-screen">
+            <div class="loading-content">
+                <h1 class="loading-title">MOOSH WALLET</h1>
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Initializing modular wallet...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- No JavaScript warning -->
+    <noscript>
+        <div>
+            <h1>JavaScript Required</h1>
+            <p>MOOSH Wallet requires JavaScript to provide secure wallet functionality.</p>
+            <p>Please enable JavaScript in your browser settings and refresh the page.</p>
+        </div>
+    </noscript>
+    
+    <!-- Module imports -->
+    <script type="module">
+        import MOOSHWalletApp from './js/app.js';
+        console.log('Loading modular MOOSH Wallet...');
+    </script>
+</body>
+</html>

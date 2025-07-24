@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Chart Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            color: #f57315;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 40px;
+            margin: 0;
+        }
+        .test-results {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #f57315;
+            margin-bottom: 40px;
+        }
+        .test {
+            background: #111;
+            border: 1px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0;
+        }
+        .test h2 {
+            margin: 0 0 15px 0;
+            color: #f57315;
+            font-size: 18px;
+        }
+        .result {
+            padding: 5px 0;
+            font-size: 14px;
+        }
+        .success {
+            color: #00ff88;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .info {
+            color: #69fd97;
+        }
+        .code {
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-results">
+        <h1>🔧 Chart Fix Verification</h1>
+        
+        <div class="test">
+            <h2>✅ Fixed Issues</h2>
+            <div class="result success">✓ Syntax error fixed - removed extra closing brace</div>
+            <div class="result success">✓ Chart now reads from account state first</div>
+            <div class="result success">✓ Chart refreshes after balance loads</div>
+            <div class="result success">✓ Hide/Show functionality refreshes entire chart</div>
+        </div>
+        
+        <div class="test">
+            <h2>📝 Changes Made</h2>
+            <div class="code">
+1. Fixed syntax error on line 29505 (extra closing brace)
+2. Chart reads balance from state: currentAccount.balances.bitcoin / 100000000
+3. Added chart refresh in afterMount() after refreshBalances()
+4. Hide/Show now calls refreshDashboard() to update chart
+5. Added debug logging to track balance source
+            </div>
+        </div>
+        
+        <div class="test">
+            <h2>🧪 How to Test</h2>
+            <div class="result info">1. Open wallet: <a href="http://localhost:3333" style="color: #69fd97;">http://localhost:3333</a></div>
+            <div class="result info">2. Go to Dashboard</div>
+            <div class="result info">3. Check browser console for: "[Chart] Got balance from state: X.XXXXXXXX BTC"</div>
+            <div class="result info">4. Verify chart shows your actual balance (not $0.00)</div>
+            <div class="result info">5. Click Hide - chart should show ••••••••</div>
+            <div class="result info">6. Click Show - chart should show real values again</div>
+            <div class="result info">7. Change currency - chart should update with new currency</div>
+        </div>
+        
+        <div class="test">
+            <h2>🐛 Debug Info</h2>
+            <div class="result">If chart still shows $0.00:</div>
+            <div class="code">
+// Check console for these messages:
+[Chart] Got balance from state: X.XXXXXXXX BTC
+[Chart] Got balance from DOM: X.XXXXXXXX BTC
+[Chart] Final wallet BTC: X.XXXXXXXX
+
+// In browser console, check:
+app.state.get('currentAccount').balances.bitcoin
+            </div>
+        </div>
+        
+        <div class="test">
+            <h2>✨ Expected Result</h2>
+            <div class="result success">Chart displays real wallet balance</div>
+            <div class="result success">Hide/Show toggles chart values correctly</div>
+            <div class="result success">No JavaScript errors in console</div>
+            <div class="result success">Chart updates when switching accounts or currencies</div>
+        </div>
+    </div>
+</body>
+</html>

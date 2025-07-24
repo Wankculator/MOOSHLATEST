@@ -1,0 +1,9 @@
+{
+  "mcp:validate-all": "node scripts/mcp-validate-all.js",
+  "mcp:watch": "node scripts/mcp-watch-all.js",
+  "mcp:final-check": "node scripts/mcp-final-check.js",
+  "mcp:memory": "node mcp-servers/memory/check.js public/js/moosh-wallet.js",
+  "mcp:security": "node scripts/run-security-mcp.js",
+  "mcp:install": "./scripts/install-all-mcps.sh",
+  "mcp:status": "node scripts/mcp-status.js"
+}

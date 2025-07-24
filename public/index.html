@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOOSH Wallet - Professional Bitcoin & Spark Protocol Wallet</title>
+    <meta name="description" content="Professional-grade, non-custodial Bitcoin and Spark Protocol wallet with enterprise features">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/mobile-enhancements.css">
+    
+    <!-- Loading screen styles -->
+    <style>
+        /* Critical styles for loading screen */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000000;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        #app {
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f57315;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #f57315;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        .loading-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        noscript {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000000;
+            color: #f57315;
+            font-size: 18px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        /* Error screen styles */
+        .error-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .error-content {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error-title {
+            color: #ff4444;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            color: #ccc;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen for original wallet -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+    </div>
+    
+    <!-- No JavaScript warning -->
+    <noscript>
+        <div>
+            <h1>JavaScript Required</h1>
+            <p>MOOSH Wallet requires JavaScript to provide secure wallet functionality.</p>
+            <p>Please enable JavaScript in your browser settings and refresh the page.</p>
+        </div>
+    </noscript>
+    
+    <!-- SecureStorage is included in the main wallet file -->
+    
+    <!-- Feature flag for modular loading -->
+    <script>
+        // Check if modular version should be used
+        const useModular = localStorage.getItem('moosh_use_modular') === 'true';
+        
+        // Load appropriate version
+        const script = document.createElement('script');
+        script.src = useModular ? '/js/moosh-wallet-modular.js' : '/js/moosh-wallet.js';
+        
+        script.onerror = function() {
+            console.error('Failed to load MOOSH Wallet script');
+            // Fallback to original if modular fails
+            if (useModular) {
+                console.log('Falling back to original version...');
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = '/js/moosh-wallet.js';
+                document.body.appendChild(fallbackScript);
+            }
+        };
+        
+        document.body.appendChild(script);
+        
+        // Log which version is being used
+        console.log(`MOOSH Wallet: Loading ${useModular ? 'modular' : 'original'} version`);
+    </script>
+</body>
+</html>

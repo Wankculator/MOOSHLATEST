@@ -1,0 +1,81 @@
+# 🛡️ ENHANCED BUILD RULES v5.0 - MANDATORY FOR ALL AI ASSISTANTS
+# CRITICAL: READ BEFORE ANY ACTION - NO EXCEPTIONS
+# 🚨 UI DIRECTIVE: ONLY USE /public/js/moosh-wallet.js - NO NEW UIs!
+
+## 🚨 CORE DIRECTIVES - NEVER VIOLATE
+1. **UI_DIRECTIVE**: ONLY modify /public/js/moosh-wallet.js - NEVER create new UI files
+2. **ASK_FIRST**: Never modify, delete, or move files without explicit permission
+3. **NO_ASSUMPTIONS**: If unclear, ask for clarification - never guess
+4. **STEP_BY_STEP**: Build incrementally from current foundation
+5. **PROFESSIONAL_ONLY**: Follow established folder structure
+6. **SECURITY_FIRST**: Client-side only, never expose private keys
+7. **MOBILE_FIRST**: Every feature must be mobile-optimized before desktop
+8. **DYNAMIC_SCALING**: Use calc(size * var(--scale-factor)) for ALL sizing
+9. **PERFORMANCE_OBSESSED**: <3s load, <100ms interactions, 60fps animations
+
+## 🛑 NEVER DO - ABSOLUTE PROHIBITIONS
+- ❌ Create new wallet UI files (test.html, demo.html, etc.)
+- ❌ Create alternative wallet implementations
+- ❌ Make "simple" or "quick" UI versions
+- ❌ Delete or move files without explicit permission
+- ❌ Create files in wrong directories
+- ❌ Modify existing professional structure
+- ❌ Make assumptions about user intent
+- ❌ Skip asking for permission
+- ❌ Store private keys on server
+- ❌ Use localStorage for sensitive data
+
+## ✅ ALWAYS DO - MANDATORY ACTIONS
+- ✅ Ask permission before ANY file changes
+- ✅ Follow professional folder structure
+- ✅ Build step-by-step from current foundation
+- ✅ Use Enhanced Build Rules v5.0 standards
+- ✅ Follow Dynamic Scaling Plan v5.0 (05_DOCUMENTATION/)
+- ✅ Maintain security-first approach
+- ✅ Test mobile-first on all devices
+- ✅ Use calc(size * var(--scale-factor)) for ALL sizing
+- ✅ Document all changes
+
+## 📁 PROFESSIONAL FOLDER STRUCTURE
+```
+MOOSH WALLET/
+├── 01_COMPANY/           # Business documents
+├── 02_PRODUCT/           # Product specifications  
+├── 03_DEVELOPMENT/       # Development code
+├── 04_ASSETS/           # Brand assets, media
+├── 05_DOCUMENTATION/    # All documentation
+├── 06_OPERATIONS/       # Operations, monitoring
+├── 07_PARTNERSHIPS/     # Partnership docs
+├── server.js            # Main server file
+├── index.html           # Reference HTML
+├── README.md            # Project overview
+└── .cursorrules         # This file
+```
+
+## 🚨 FILE ORGANIZATION RULES
+**ROOT LEVEL ONLY:** server.js, index.html, README.md, package.json, .cursorrules, .gitignore, ENHANCED_BUILD_RULES_v5.md, START_HERE.md, WORKSPACE_QUICK_START.md
+**NUMBERED FOLDERS ONLY:** Use 01_COMPANY/, 02_PRODUCT/, etc. NEVER create ASSETS/, DEVELOPMENT/, etc.
+**BEFORE ANY FILE CREATION:** Ask where it should go according to numbered folder structure
+
+## 🎯 CURRENT PROJECT FOCUS
+- Building professional Bitcoin wallet
+- Using ONLY /public/js/moosh-wallet.js for UI
+- Current UI location: http://localhost:3333
+- UI is a 12,441-line Single Page Application
+- DO NOT create new UI files - modify existing only
+
+## 🚨 VIOLATION CONSEQUENCES
+If these rules are violated:
+1. Stop all actions immediately
+2. Acknowledge the violation
+3. Ask for explicit permission to continue
+4. Follow rules exactly as written
+
+## 💡 WHEN IN DOUBT
+- STOP and ASK
+- Do NOT proceed without permission
+- State "insufficient data" if unclear
+- Request specific instructions
+
+---
+**These rules exist to maintain professional standards and protect the user's work. Follow them exactly.** 

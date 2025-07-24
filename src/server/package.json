@@ -1,0 +1,25 @@
+{
+  "name": "moosh-wallet-server",
+  "version": "1.0.0",
+  "description": "MOOSH Wallet API Server with Spark Protocol Integration",
+  "main": "server-api.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server-api.js",
+    "dev": "nodemon server-api.js"
+  },
+  "dependencies": {
+    "@buildonspark/spark-sdk": "^0.1.41",
+    "axios": "^1.6.0",
+    "bip32": "^2.0.6",
+    "bip39": "^3.1.0",
+    "bs58check": "^4.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^5.1.0",
+    "tiny-secp256k1": "^2.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "mcps": {
+    "@memory/mcp": {
+      "enabled": true,
+      "priority": 1,
+      "config": "./mcp-servers/memory/config.json",
+      "autoStart": true
+    },
+    "@security/mcp": {
+      "enabled": true,
+      "priority": 1,
+      "settings": {
+        "mode": "crypto-wallet",
+        "scanDepth": "deep",
+        "blockDangerousPatterns": true
+      }
+    },
+    "context7": {
+      "enabled": true,
+      "priority": 2,
+      "path": "./mcp-servers/context7",
+      "settings": {
+        "contextDepth": 5,
+        "trackImports": true
+      }
+    },
+    "@firecrawl/mcp": {
+      "enabled": true,
+      "priority": 3,
+      "settings": {
+        "apiKey": "YOUR_API_KEY_HERE",
+        "rateLimit": true,
+        "cache": true
+      }
+    },
+    "@api-monitor/mcp": {
+      "enabled": true,
+      "priority": 2,
+      "settings": {
+        "blockDirectCalls": true,
+        "trackRateLimits": true
+      }
+    },
+    "@testsprite/mcp": {
+      "enabled": true,
+      "priority": 1,
+      "path": "./scripts/test-with-sprite.js"
+    },
+    "anthropic-memory": {
+      "enabled": true,
+      "path": "./mcp-servers/anthropic-memory"
+    },
+    "bitcoin-tools": {
+      "enabled": true,
+      "path": "./mcp-servers/bitcoin-tools"
+    },
+    "crypto-security": {
+      "enabled": true,
+      "path": "./mcp-servers/crypto-security"
+    },
+    "websocket-monitor": {
+      "enabled": true,
+      "path": "./mcp-servers/websocket-monitor"
+    },
+    "indexed-db": {
+      "enabled": true,
+      "path": "./mcp-servers/indexed-db"
+    }
+  },
+  "globalSettings": {
+    "failFast": true,
+    "logLevel": "info",
+    "reportPath": "./mcp-reports/"
+  }
+}

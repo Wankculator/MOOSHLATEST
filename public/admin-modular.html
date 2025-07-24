@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOOSH Wallet - Modular Version Control</title>
+    <style>
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #f57315;
+            border-bottom: 2px solid #f57315;
+            padding-bottom: 10px;
+        }
+        
+        .status-box {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .button {
+            background: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        .button.danger {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+        
+        .button.danger:hover {
+            background: #ff4444;
+            color: #000;
+        }
+        
+        .current-version {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        
+        .version-original {
+            color: #00ff00;
+        }
+        
+        .version-modular {
+            color: #f57315;
+        }
+        
+        .info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #f57315;
+        }
+        
+        .module-list {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        
+        .module-item {
+            padding: 5px 0;
+            color: #999;
+        }
+        
+        .module-item.loaded {
+            color: #00ff00;
+        }
+        
+        .module-item.pending {
+            color: #f57315;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MOOSH Wallet - Modular Version Control</h1>
+        
+        <div class="status-box">
+            <div class="current-version" id="current-version">
+                Loading version status...
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>About Modular Version</h3>
+            <p>The modular version splits the 33,000+ line moosh-wallet.js file into smaller, manageable modules:</p>
+            <ul>
+                <li>Better performance (lazy loading)</li>
+                <li>Easier maintenance</li>
+                <li>Improved code organization</li>
+                <li>100% backward compatible</li>
+            </ul>
+        </div>
+        
+        <div>
+            <button class="button" onclick="setVersion('original')">Use Original Version</button>
+            <button class="button" onclick="setVersion('modular')">Use Modular Version</button>
+            <button class="button danger" onclick="clearAndReload()">Clear All & Reload</button>
+        </div>
+        
+        <div class="module-list">
+            <h3>Extracted Modules</h3>
+            <div class="module-item loaded">✓ validation-utils.js - Input validation functions</div>
+            <div class="module-item loaded">✓ general-utils.js - General utility functions</div>
+            <div class="module-item loaded">✓ crypto-utils.js - Cryptographic utilities</div>
+            <div class="module-item loaded">✓ element-factory.js - DOM creation ($ global)</div>
+            <div class="module-item loaded">✓ responsive-utils.js - Mobile/Desktop optimization</div>
+            <div class="module-item loaded">✓ compliance-utils.js - Standards enforcement & logging</div>
+            <div class="module-item loaded">✓ secure-storage.js - Encrypted storage utilities</div>
+            <div class="module-item loaded">✓ state-manager.js - State management & events</div>
+            <div class="module-item loaded">✓ api-service.js - API integration & external data</div>
+            <div class="module-item loaded">✓ component.js - Base class for UI components</div>
+            <div class="module-item loaded">✓ router.js - Single Page Application navigation</div>
+            <div class="module-item loaded">✓ wallet-detector.js - Multi-wallet type detection</div>
+            <div class="module-item loaded">✓ button.js - Reusable button component</div>
+            <div class="module-item loaded">✓ terminal.js - Terminal UI component</div>
+            <div class="module-item loaded">✓ header.js - Application header component</div>
+            <div class="module-item loaded">✓ home-page.js - Main landing page</div>
+            <div class="module-item loaded">✓ generate-seed-page.js - Seed generation page</div>
+            <div class="module-item loaded">✓ confirm-seed-page.js - Seed verification page</div>
+            <div class="module-item loaded">✓ import-seed-page.js - Import wallet page</div>
+            <div class="module-item loaded">✓ wallet-created-page.js - Wallet created confirmation</div>
+            <div class="module-item loaded">✓ wallet-imported-page.js - Wallet imported confirmation</div>
+            <div class="module-item loaded">✓ wallet-details-page.js - Wallet details display</div>
+            <div class="module-item loaded">✓ transaction-history.js - Transaction list component</div>
+            <div class="module-item loaded">✓ ordinals-manager.js - Ordinals/inscriptions management</div>
+            <div class="module-item loaded">✓ send-modal.js - Send Bitcoin modal</div>
+            <div class="module-item loaded">✓ receive-modal.js - Receive Bitcoin modal</div>
+            <div class="module-item loaded">✓ wallet-settings-modal.js - Wallet type selector</div>
+            <div class="module-item loaded">✓ ordinals-modal.js - Ordinals gallery modal</div>
+            <div class="module-item pending">○ dashboard-page.js - Wallet dashboard (pending)</div>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <button class="button" onclick="window.location.href='/'">← Back to Wallet</button>
+            <button class="button" onclick="window.location.href='/test-modular.html'">Test Modules →</button>
+        </div>
+    </div>
+    
+    <script>
+        function checkCurrentVersion() {
+            const useModular = localStorage.getItem('moosh_use_modular') === 'true';
+            const versionDiv = document.getElementById('current-version');
+            
+            if (useModular) {
+                versionDiv.innerHTML = 'Current Version: <span class="version-modular">MODULAR</span>';
+            } else {
+                versionDiv.innerHTML = 'Current Version: <span class="version-original">ORIGINAL</span>';
+            }
+        }
+        
+        function setVersion(version) {
+            if (version === 'modular') {
+                localStorage.setItem('moosh_use_modular', 'true');
+                alert('Switched to MODULAR version. The page will reload.');
+            } else {
+                localStorage.removeItem('moosh_use_modular');
+                alert('Switched to ORIGINAL version. The page will reload.');
+            }
+            window.location.reload();
+        }
+        
+        function clearAndReload() {
+            if (confirm('This will clear all local storage and reload the page. Continue?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+            }
+        }
+        
+        // Check version on load
+        checkCurrentVersion();
+    </script>
+</body>
+</html>

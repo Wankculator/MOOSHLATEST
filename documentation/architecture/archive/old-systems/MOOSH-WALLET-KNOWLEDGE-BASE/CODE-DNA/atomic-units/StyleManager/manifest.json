@@ -1,0 +1,239 @@
+{
+  "id": "sm-001-style-manager",
+  "name": "StyleManager",
+  "type": "core-service",
+  "version": "2.0.0",
+  "location": "public/js/moosh-wallet.js:300-1827",
+  "created": "2024-01-01T00:00:00Z",
+  "lastModified": "2024-01-15T00:00:00Z",
+  "authors": ["MOOSH Wallet Team"],
+  "purpose": "Runtime CSS injection and management system providing complete styling for the application with theme support",
+  "architecture": {
+    "pattern": "CSS-in-JS with Runtime Injection",
+    "paradigm": "Mobile-first responsive design",
+    "stateManagement": "Stateful style element reference",
+    "threading": "Single-threaded",
+    "memoryModel": "Single style element in DOM"
+  },
+  "dependencies": {
+    "external": [],
+    "internal": ["ElementFactory (via $ alias)"],
+    "browser": ["document.head", "document.createElement"],
+    "runtime": []
+  },
+  "properties": {
+    "styleElement": {
+      "type": "HTMLStyleElement",
+      "description": "Reference to injected style element"
+    },
+    "rules": {
+      "type": "Map",
+      "description": "Storage for dynamic CSS rules (unused?)"
+    }
+  },
+  "methods": {
+    "constructor": {
+      "purpose": "Initialize properties",
+      "sets": ["styleElement = null", "rules = new Map()"]
+    },
+    "inject": {
+      "purpose": "Main entry point - injects all CSS into document",
+      "flow": [
+        "Create style element",
+        "Append to document.head",
+        "Call addCoreStyles()",
+        "Call addComponentStyles()",
+        "Call addAnimations()",
+        "Call addResponsiveStyles()",
+        "Call addLockScreenStyles()"
+      ],
+      "critical": "Must be called once on app init"
+    },
+    "addCoreStyles": {
+      "purpose": "Inject core CSS variables and base styles",
+      "includes": [
+        "Color system (orange/green themes)",
+        "Typography scales",
+        "Spacing system",
+        "Responsive breakpoints",
+        "Container system",
+        "Touch optimizations"
+      ],
+      "size": "~1500 lines of CSS"
+    },
+    "addComponentStyles": {
+      "purpose": "Component-specific styles",
+      "includes": [
+        "Header styles",
+        "Navigation styles",
+        "Terminal boxes",
+        "Buttons and inputs",
+        "Cards and modals",
+        "Page layouts"
+      ]
+    },
+    "addAnimations": {
+      "purpose": "Define CSS animations",
+      "animations": [
+        "blink (cursor)",
+        "shimmer",
+        "mooshFlash",
+        "pulse",
+        "fadeIn",
+        "slideIn/slideOut",
+        "shake",
+        "lockShake"
+      ]
+    },
+    "addResponsiveStyles": {
+      "purpose": "Media query based responsive rules",
+      "breakpoints": [
+        "480px - Small phones",
+        "768px - Tablets",
+        "1024px - Desktop",
+        "1200px - Large desktop",
+        "1600px - Extra large"
+      ]
+    },
+    "addLockScreenStyles": {
+      "purpose": "Wallet lock screen specific styles",
+      "features": [
+        "Overlay positioning",
+        "Lock container styling",
+        "Terminal aesthetics",
+        "Responsive adjustments"
+      ]
+    }
+  },
+  "cssVariableSystem": {
+    "colors": {
+      "primary": {
+        "--text-primary": "#f57315 (orange) / #69fd97 (green)",
+        "--bg-primary": "#000000",
+        "--border-color": "#333333 / #232b2b"
+      },
+      "semantic": {
+        "--text-secondary": "#ffffff",
+        "--text-dim": "#888888",
+        "--accent-bg": "rgba with 10% opacity"
+      }
+    },
+    "typography": {
+      "base": "--font-base: 13px to 17px",
+      "scale": "--font-scale: clamp(0.875rem, 2vw + 0.5rem, 1.125rem)",
+      "sizes": "--font-xs through --font-3xl"
+    },
+    "spacing": {
+      "unit": "--space-unit: clamp(0.25rem, 1vw, 0.5rem)",
+      "scale": "--space-xs through --space-2xl"
+    },
+    "responsive": {
+      "containers": "--container-xs through --container-xl",
+      "scaling": "--scale-factor: 0.65 to 1.05"
+    }
+  },
+  "themeSystem": {
+    "default": {
+      "name": "Orange Theme",
+      "primary": "#f57315",
+      "class": "default (no class)"
+    },
+    "moosh": {
+      "name": "MOOSH Green Theme",
+      "primary": "#69fd97",
+      "class": "body.moosh-mode",
+      "overrides": "Uses !important for all values"
+    }
+  },
+  "responsiveStrategy": {
+    "approach": "Mobile-first with progressive enhancement",
+    "breakpoints": {
+      "base": "< 480px",
+      "sm": "480px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1200px",
+      "xxl": "1600px"
+    },
+    "techniques": [
+      "CSS clamp() for fluid scaling",
+      "CSS variables for dynamic values",
+      "Media queries for breakpoints",
+      "Viewport units for responsive sizing"
+    ]
+  },
+  "performance": {
+    "characteristics": {
+      "injectionTime": "~10-20ms on init",
+      "memoryFootprint": "~50KB of CSS",
+      "runtimeOverhead": "Zero after injection"
+    },
+    "optimizations": [
+      "Single injection on load",
+      "No runtime recalculation",
+      "CSS variables for dynamic theming",
+      "Minimal specificity conflicts"
+    ],
+    "considerations": [
+      "Large CSS payload (~1500+ lines)",
+      "No tree shaking",
+      "All styles loaded upfront"
+    ]
+  },
+  "testing": {
+    "coverage": "0%",
+    "criticalPaths": [
+      "Style injection on init",
+      "Theme switching",
+      "Responsive breakpoints",
+      "CSS variable inheritance"
+    ],
+    "edgeCases": [
+      "Missing document.head",
+      "CSP restrictions",
+      "Multiple injections",
+      "Theme class conflicts"
+    ]
+  },
+  "aiContext": {
+    "criticalWarnings": [
+      "NEVER modify CSS variable names - entire app depends on them",
+      "ALWAYS use !important for theme overrides",
+      "Style injection happens ONCE - no hot reloading",
+      "All styles are global - no scoping",
+      "Order matters - later styles override earlier"
+    ],
+    "commonMistakes": [
+      "Changing variable names breaks everything",
+      "Forgetting !important in theme overrides",
+      "Adding styles after injection",
+      "Breaking responsive breakpoints",
+      "Using wrong CSS units"
+    ],
+    "bestPractices": [
+      "Use CSS variables for all dynamic values",
+      "Follow mobile-first approach",
+      "Test all breakpoints",
+      "Maintain theme consistency",
+      "Keep specificity low"
+    ],
+    "dependencies": [
+      "Every component depends on these styles",
+      "ResponsiveUtils expects these CSS variables",
+      "Theme switching requires body class",
+      "Lock screen has dedicated styles"
+    ]
+  },
+  "codeEvolution": {
+    "cssSize": "~1500+ lines of CSS",
+    "approach": "All-in-one injection",
+    "themeStrategy": "CSS variables + class overrides",
+    "futureConsiderations": [
+      "Split into modules",
+      "Add CSS-in-JS per component",
+      "Implement style pruning",
+      "Add theme customization",
+      "Support user preferences"
+    ]
+  }
+}

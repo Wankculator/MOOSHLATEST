@@ -1,0 +1,270 @@
+/**
+ * Mobile Enhancements for MOOSH Wallet
+ * Responsive design and mobile-specific optimizations
+ */
+
+/* Mobile Base Styles */
+@media (max-width: 768px) {
+    /* Typography scaling */
+    body {
+        font-size: 14px;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+    }
+
+    /* Container adjustments */
+    .container,
+    .app-main,
+    .app-content {
+        padding: 12px;
+        max-width: 100%;
+    }
+
+    /* Header mobile styles */
+    .app-header {
+        padding: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Button enhancements for touch */
+    .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        touch-action: manipulation;
+    }
+
+    /* Input enhancements */
+    input,
+    textarea,
+    select {
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 44px;
+        padding: 12px;
+    }
+
+    /* Modal adjustments */
+    .modal {
+        margin: 0;
+        max-height: 100vh;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Home page mobile */
+    .home-hero {
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .home-title {
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+
+    .home-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .home-actions .btn {
+        width: 100%;
+    }
+
+    /* Wallet info mobile */
+    .wallet-info {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .wallet-address {
+        font-size: 12px;
+        word-break: break-all;
+    }
+
+    .wallet-balance h3 {
+        font-size: 28px;
+    }
+
+    /* Seed phrase display */
+    .seed-words {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .seed-word {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    /* Toast notifications */
+    .app-toasts {
+        bottom: 20px;
+        right: 12px;
+        left: 12px;
+    }
+
+    .toast {
+        width: 100%;
+        margin: 0 0 8px 0;
+    }
+
+    /* Loading screen */
+    .loading-title {
+        font-size: 1.5rem;
+    }
+
+    /* Dropdown adjustments */
+    .dropdown-menu {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        top: auto;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    /* Tab headers */
+    .tab-headers {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    .tab-header {
+        min-width: 100px;
+        flex-shrink: 0;
+    }
+}
+
+/* Landscape mode adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    .modal {
+        max-height: 90vh;
+    }
+
+    .modal-content {
+        max-height: calc(90vh - 80px);
+    }
+
+    .home-hero {
+        padding: 20px;
+    }
+
+    .home-title {
+        font-size: 20px;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 375px) {
+    body {
+        font-size: 13px;
+    }
+
+    .container {
+        padding: 8px;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .home-title {
+        font-size: 20px;
+    }
+
+    .wallet-balance h3 {
+        font-size: 24px;
+    }
+
+    .seed-words {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Touch and hover states */
+@media (hover: none) {
+    /* Remove hover effects on touch devices */
+    .btn:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Add active states for better feedback */
+    .btn:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Fix for iOS bounce scrolling */
+    .modal-content {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fix for iOS button appearance */
+    .btn,
+    input,
+    textarea,
+    select {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    /* Already dark by default, but can add specific overrides here */
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .btn {
+        border: 2px solid currentColor;
+    }
+
+    input,
+    textarea,
+    select {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Print styles */
+@media print {
+    .app-header,
+    .app-toasts,
+    .btn,
+    .modal-close {
+        display: none !important;
+    }
+
+    .seed-words {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}

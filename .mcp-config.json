@@ -1,0 +1,28 @@
+{
+  "tools": {
+    "memory": {
+      "enabled": true,
+      "threshold": "500MB",
+      "checkInterval": 60000
+    },
+    "security": {
+      "enabled": true,
+      "scanOnSave": true,
+      "blockDangerous": true
+    },
+    "firecrawl": {
+      "enabled": true,
+      "apiKey": "YOUR_API_KEY_HERE",
+      "cacheTimeout": 300000
+    },
+    "testsprite": {
+      "enabled": true,
+      "autoRun": true
+    }
+  },
+  "validation": {
+    "preCommit": true,
+    "prePush": true,
+    "continuous": false
+  }
+}

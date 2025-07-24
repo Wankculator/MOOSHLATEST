@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOOSH Wallet - Interactive Dependency Graph</title>
+    <style>
+        :root {
+            --primary-color: #f57315;
+            --secondary-color: #69fd97;
+            --bg-dark: #000000;
+            --bg-secondary: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-dim: #888888;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .component-info {
+            margin-bottom: 20px;
+        }
+
+        .component-info h3 {
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .component-info p {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin: 5px 0;
+        }
+
+        .dependencies-list {
+            font-size: 12px;
+        }
+
+        .dependencies-list h4 {
+            color: var(--secondary-color);
+            margin: 10px 0 5px 0;
+        }
+
+        .dependencies-list ul {
+            list-style: none;
+            padding-left: 10px;
+            margin: 0;
+        }
+
+        .dependencies-list li {
+            padding: 2px 0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .dependencies-list li:hover {
+            color: var(--primary-color);
+        }
+
+        #graph-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            z-index: 1000;
+        }
+
+        .controls button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .controls button:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .controls button:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+        }
+
+        .legend h4 {
+            color: var(--primary-color);
+            font-size: 14px;
+            margin: 0 0 10px 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            fill: #fff;
+            pointer-events: none;
+        }
+
+        .link {
+            fill: none;
+            stroke: #333;
+            stroke-width: 1px;
+        }
+
+        .link.highlighted {
+            stroke: var(--primary-color);
+            stroke-width: 2px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--primary-color);
+            padding: 10px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 300px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Component Explorer</h2>
+            <input type="text" class="search-box" placeholder="Search components..." id="searchBox">
+            
+            <div id="componentInfo" class="component-info">
+                <p style="color: var(--text-dim);">Select a component to view details</p>
+            </div>
+        </div>
+        
+        <div id="graph-container">
+            <div class="controls">
+                <button onclick="resetZoom()">Reset View</button>
+                <button onclick="showCriticalPath()">Show Critical Path</button>
+                <button onclick="toggleLayout()">Toggle Layout</button>
+                <button onclick="exportGraph()">Export SVG</button>
+            </div>
+            
+            <div class="legend">
+                <h4>Component Types</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f57315;"></div>
+                    <span>Core/Utility</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #69fd97;"></div>
+                    <span>Pages</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4a9eff;"></div>
+                    <span>Modals</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span>Services</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // Component dependency data
+        const dependencyData = {
+            nodes: [
+                // Core/Utility
+                { id: "ElementFactory", type: "utility", description: "DOM creation utility", critical: true },
+                { id: "ResponsiveUtils", type: "utility", description: "Responsive design utilities" },
+                { id: "StyleManager", type: "utility", description: "CSS injection system", critical: true },
+                { id: "StateManager", type: "core", description: "Reactive state management", critical: true },
+                { id: "APIService", type: "service", description: "External API integration" },
+                { id: "Router", type: "core", description: "SPA navigation", critical: true },
+                { id: "Component", type: "core", description: "Base component class", critical: true },
+                
+                // Pages
+                { id: "HomePage", type: "page", description: "Landing page" },
+                { id: "GenerateSeedPage", type: "page", description: "Seed generation" },
+                { id: "ConfirmSeedPage", type: "page", description: "Seed verification" },
+                { id: "ImportSeedPage", type: "page", description: "Import wallet" },
+                { id: "WalletCreatedPage", type: "page", description: "Creation success" },
+                { id: "WalletImportedPage", type: "page", description: "Import success" },
+                { id: "WalletDetailsPage", type: "page", description: "Address details" },
+                { id: "DashboardPage", type: "page", description: "Main dashboard" },
+                
+                // Modals
+                { id: "MultiAccountModal", type: "modal", description: "Account management" },
+                { id: "TransactionHistoryModal", type: "modal", description: "Transaction list" },
+                { id: "SwapModal", type: "modal", description: "Token swap" },
+                { id: "SendPaymentModal", type: "modal", description: "Send Bitcoin" },
+                
+                // Main App
+                { id: "MOOSHWalletApp", type: "main", description: "Main application", critical: true }
+            ],
+            links: [
+                // ElementFactory dependencies
+                { source: "Component", target: "ElementFactory" },
+                { source: "StyleManager", target: "ElementFactory" },
+                { source: "HomePage", target: "ElementFactory" },
+                { source: "GenerateSeedPage", target: "ElementFactory" },
+                { source: "ConfirmSeedPage", target: "ElementFactory" },
+                { source: "ImportSeedPage", target: "ElementFactory" },
+                { source: "DashboardPage", target: "ElementFactory" },
+                { source: "MultiAccountModal", target: "ElementFactory" },
+                { source: "TransactionHistoryModal", target: "ElementFactory" },
+                { source: "SwapModal", target: "ElementFactory" },
+                { source: "SendPaymentModal", target: "ElementFactory" },
+                
+                // StateManager dependencies
+                { source: "Component", target: "StateManager" },
+                { source: "APIService", target: "StateManager" },
+                { source: "Router", target: "StateManager" },
+                { source: "HomePage", target: "StateManager" },
+                { source: "DashboardPage", target: "StateManager" },
+                { source: "MultiAccountModal", target: "StateManager" },
+                
+                // Component inheritance
+                { source: "HomePage", target: "Component" },
+                { source: "GenerateSeedPage", target: "Component" },
+                { source: "ConfirmSeedPage", target: "Component" },
+                { source: "ImportSeedPage", target: "Component" },
+                { source: "DashboardPage", target: "Component" },
+                { source: "MultiAccountModal", target: "Component" },
+                { source: "TransactionHistoryModal", target: "Component" },
+                { source: "SwapModal", target: "Component" },
+                { source: "SendPaymentModal", target: "Component" },
+                
+                // Router dependencies
+                { source: "HomePage", target: "Router" },
+                { source: "GenerateSeedPage", target: "Router" },
+                { source: "DashboardPage", target: "Router" },
+                
+                // APIService usage
+                { source: "DashboardPage", target: "APIService" },
+                { source: "TransactionHistoryModal", target: "APIService" },
+                { source: "SendPaymentModal", target: "APIService" },
+                
+                // Main app dependencies
+                { source: "MOOSHWalletApp", target: "Router" },
+                { source: "MOOSHWalletApp", target: "StateManager" },
+                { source: "MOOSHWalletApp", target: "StyleManager" },
+                { source: "MOOSHWalletApp", target: "ResponsiveUtils" },
+                
+                // Additional dependencies
+                { source: "StyleManager", target: "ResponsiveUtils" },
+                { source: "DashboardPage", target: "MultiAccountModal" },
+                { source: "DashboardPage", target: "TransactionHistoryModal" },
+                { source: "DashboardPage", target: "SwapModal" },
+                { source: "DashboardPage", target: "SendPaymentModal" }
+            ]
+        };
+
+        // Initialize D3 visualization
+        const width = window.innerWidth - 300;
+        const height = window.innerHeight;
+
+        const svg = d3.select("#graph-container")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const g = svg.append("g");
+
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 4])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        // Create force simulation
+        const simulation = d3.forceSimulation(dependencyData.nodes)
+            .force("link", d3.forceLink(dependencyData.links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(40));
+
+        // Create links
+        const link = g.append("g")
+            .selectAll("line")
+            .data(dependencyData.links)
+            .enter().append("line")
+            .attr("class", "link");
+
+        // Create nodes
+        const node = g.append("g")
+            .selectAll("g")
+            .data(dependencyData.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        // Add circles to nodes
+        node.append("circle")
+            .attr("r", d => d.critical ? 25 : 20)
+            .attr("fill", d => {
+                switch(d.type) {
+                    case "utility":
+                    case "core": return "#f57315";
+                    case "page": return "#69fd97";
+                    case "modal": return "#4a9eff";
+                    case "service": return "#ff6b6b";
+                    case "main": return "#ff00ff";
+                    default: return "#666";
+                }
+            })
+            .attr("stroke", d => d.critical ? "#fff" : "none")
+            .attr("stroke-width", d => d.critical ? 2 : 0);
+
+        // Add labels to nodes
+        node.append("text")
+            .text(d => d.id)
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("font-size", d => d.critical ? "14px" : "12px");
+
+        // Add tooltip behavior
+        const tooltip = d3.select("#tooltip");
+
+        node.on("mouseover", function(event, d) {
+            tooltip.style("opacity", 1)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px")
+                .html(`<strong>${d.id}</strong><br/>${d.description}<br/>Type: ${d.type}${d.critical ? '<br/><span style="color: #ff0000;">CRITICAL COMPONENT</span>' : ''}`);
+            
+            // Highlight connections
+            link.classed("highlighted", l => l.source.id === d.id || l.target.id === d.id);
+        })
+        .on("mouseout", function() {
+            tooltip.style("opacity", 0);
+            link.classed("highlighted", false);
+        })
+        .on("click", function(event, d) {
+            showComponentDetails(d);
+        });
+
+        // Update positions on tick
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        // Drag functions
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        // Control functions
+        function resetZoom() {
+            svg.transition().duration(750).call(
+                zoom.transform,
+                d3.zoomIdentity
+            );
+        }
+
+        function showCriticalPath() {
+            // Highlight critical components
+            node.style("opacity", d => d.critical ? 1 : 0.3);
+            link.style("opacity", l => 
+                (l.source.critical || l.target.critical) ? 1 : 0.1
+            );
+        }
+
+        function toggleLayout() {
+            // Toggle between force and hierarchical layout
+            simulation.force("center", null);
+            simulation.force("charge", d3.forceManyBody().strength(-500));
+            simulation.alpha(1).restart();
+        }
+
+        function exportGraph() {
+            // Export as SVG
+            const svgData = new XMLSerializer().serializeToString(svg.node());
+            const blob = new Blob([svgData], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "moosh-wallet-dependencies.svg";
+            a.click();
+        }
+
+        // Show component details
+        function showComponentDetails(component) {
+            const info = document.getElementById("componentInfo");
+            
+            const dependencies = dependencyData.links
+                .filter(l => l.source.id === component.id)
+                .map(l => l.target.id);
+            
+            const dependents = dependencyData.links
+                .filter(l => l.target.id === component.id)
+                .map(l => l.source.id);
+            
+            info.innerHTML = `
+                <h3>${component.id}</h3>
+                <p>${component.description}</p>
+                <p>Type: <span style="color: var(--primary-color);">${component.type}</span></p>
+                ${component.critical ? '<p style="color: #ff0000;">⚠️ CRITICAL COMPONENT</p>' : ''}
+                
+                <div class="dependencies-list">
+                    <h4>Dependencies (${dependencies.length})</h4>
+                    <ul>
+                        ${dependencies.map(d => `<li onclick="focusNode('${d}')">${d}</li>`).join('')}
+                    </ul>
+                    
+                    <h4>Dependents (${dependents.length})</h4>
+                    <ul>
+                        ${dependents.map(d => `<li onclick="focusNode('${d}')">${d}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Focus on specific node
+        window.focusNode = function(nodeId) {
+            const targetNode = dependencyData.nodes.find(n => n.id === nodeId);
+            if (targetNode) {
+                const transform = d3.zoomIdentity
+                    .translate(width / 2, height / 2)
+                    .scale(1.5)
+                    .translate(-targetNode.x, -targetNode.y);
+                
+                svg.transition().duration(750).call(zoom.transform, transform);
+                
+                // Highlight the node
+                node.style("opacity", d => d.id === nodeId ? 1 : 0.3);
+                setTimeout(() => {
+                    node.style("opacity", 1);
+                }, 1500);
+            }
+        };
+
+        // Search functionality
+        document.getElementById("searchBox").addEventListener("input", function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            node.style("opacity", d => 
+                d.id.toLowerCase().includes(searchTerm) ? 1 : 0.3
+            );
+            
+            if (searchTerm === "") {
+                node.style("opacity", 1);
+            }
+        });
+    </script>
+</body>
+</html>
