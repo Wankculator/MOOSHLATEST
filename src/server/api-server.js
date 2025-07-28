@@ -8,6 +8,8 @@ import cors from 'cors';
 import * as bip39 from 'bip39';
 import { generateMnemonic, generateBitcoinWallet, generateSparkAddress, importWallet, validateAddress } from './services/walletService.js';
 import { generateSparkCompatibleWallet, importSparkCompatibleWallet, getBalance, getTransactions } from './services/sparkCompatibleService.js';
+import { walletExportService } from './services/walletExportService.js';
+import { walletImportService } from './services/walletImportService.js';
 
 const app = express();
 const PORT = process.env.API_PORT || 3001;
@@ -18,27 +20,38 @@ const corsOptions = {
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
         
-        // Allow localhost ports for development
-        const allowedOrigins = [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:3333',
-            'http://localhost:5173',
-            'http://127.0.0.1:3000',
-            'http://127.0.0.1:3001',
-            'http://127.0.0.1:3333',
-            'http://127.0.0.1:5173',
-            'https://localhost:3000',
-            'https://localhost:3001',
-            'https://localhost:3333',
-            'https://localhost:5173'
-        ];
-        
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            // In production, replace with your domain
-            callback(null, true); // For now, allow all origins
+        // Parse origin to check if it's localhost/127.0.0.1
+        try {
+            const url = new URL(origin);
+            const hostname = url.hostname;
+            const port = url.port;
+            
+            // Allow localhost and 127.0.0.1 on any port
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                // In production, enforce HTTPS
+                if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') {
+                    return callback(new Error('HTTPS required in production'));
+                }
+                
+                // Check allowed ports
+                const allowedPorts = ['3000', '3001', '3030', '3333', '5173'];
+                if (allowedPorts.includes(port) || !port) {
+                    return callback(null, true);
+                }
+            }
+            
+            // In production, add your domain here
+            if (process.env.NODE_ENV === 'production') {
+                const allowedDomains = process.env.ALLOWED_ORIGINS?.split(',') || [];
+                if (allowedDomains.includes(origin)) {
+                    return callback(null, true);
+                }
+            }
+            
+            // Default: reject
+            callback(new Error('Not allowed by CORS'));
+        } catch (e) {
+            callback(new Error('Invalid origin'));
         }
     },
     credentials: true, // Allow cookies and credentials
@@ -194,6 +207,148 @@ app.post('/api/wallet/import', async (req, res) => {
         res.json(response);
     } catch (error) {
         console.error('Wallet import error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get UTXOs for a Bitcoin address
+app.get('/api/bitcoin/utxos/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        
+        if (!address) {
+            return res.status(400).json({
+                success: false,
+                error: 'Address is required'
+            });
+        }
+        
+        // For now, return mock UTXOs for testing
+        // In production, this would query a Bitcoin node or blockchain API
+        const mockUtxos = [
+            {
+                txid: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+                vout: 0,
+                value: 100000, // 0.001 BTC in satoshis
+                confirmations: 6
+            },
+            {
+                txid: 'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
+                vout: 1,
+                value: 50000, // 0.0005 BTC in satoshis
+                confirmations: 3
+            }
+        ];
+        
+        res.json({
+            success: true,
+            data: mockUtxos
+        });
+    } catch (error) {
+        console.error('Error fetching UTXOs:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Broadcast a signed Bitcoin transaction
+app.post('/api/bitcoin/broadcast', async (req, res) => {
+    try {
+        const { hex } = req.body;
+        
+        if (!hex) {
+            return res.status(400).json({
+                success: false,
+                error: 'Transaction hex is required'
+            });
+        }
+        
+        // Validate hex format
+        if (!/^[0-9a-fA-F]+$/.test(hex)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid transaction hex format'
+            });
+        }
+        
+        // In production, this would broadcast to the Bitcoin network
+        // For now, simulate a successful broadcast
+        const txId = crypto.createHash('sha256').update(hex).digest('hex');
+        
+        console.log(`[Bitcoin] Broadcasting transaction: ${txId.substring(0, 10)}...`);
+        
+        res.json({
+            success: true,
+            data: {
+                txId: txId,
+                message: 'Transaction broadcast successfully'
+            }
+        });
+    } catch (error) {
+        console.error('Error broadcasting transaction:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get Bitcoin transaction history for an address
+app.get('/api/bitcoin/transactions/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const { limit = 10, offset = 0 } = req.query;
+        
+        if (!address) {
+            return res.status(400).json({
+                success: false,
+                error: 'Address is required'
+            });
+        }
+        
+        // For now, return mock transaction history
+        // In production, this would query a Bitcoin node or blockchain API
+        const mockTransactions = [
+            {
+                txid: 'abc123def456abc123def456abc123def456abc123def456abc123def456abc1',
+                type: 'receive',
+                amount: 100000,
+                fee: 0,
+                confirmations: 12,
+                timestamp: Date.now() - 86400000, // 1 day ago
+                from: ['1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'],
+                to: [address],
+                status: 'confirmed'
+            },
+            {
+                txid: 'def456abc123def456abc123def456abc123def456abc123def456abc123def4',
+                type: 'send',
+                amount: 50000,
+                fee: 1000,
+                confirmations: 6,
+                timestamp: Date.now() - 172800000, // 2 days ago
+                from: [address],
+                to: ['bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'],
+                status: 'confirmed'
+            }
+        ];
+        
+        res.json({
+            success: true,
+            data: {
+                transactions: mockTransactions.slice(offset, offset + limit),
+                total: mockTransactions.length,
+                limit,
+                offset
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
         res.status(500).json({
             success: false,
             error: error.message
@@ -916,6 +1071,310 @@ app.post('/api/wallet/test-paths', async (req, res) => {
     }
 });
 
+// Export wallet endpoint - OPERATION THUNDERSTRIKE
+app.post('/api/wallet/export/:walletId', async (req, res) => {
+    try {
+        const { walletId } = req.params;
+        const { password, format = 'json' } = req.body;
+        
+        if (!walletId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Wallet ID is required'
+            });
+        }
+        
+        if (!password || password.length < 12) {
+            return res.status(400).json({
+                success: false,
+                error: 'Password must be at least 12 characters'
+            });
+        }
+        
+        // In production, this would fetch wallet data from database
+        // For now, we'll use mock data
+        const walletData = {
+            walletId: walletId,
+            name: 'My Bitcoin Wallet',
+            mnemonic: 'example mnemonic phrase here would be stored encrypted',
+            network: 'MAINNET',
+            addresses: {
+                bitcoin: 'bc1q...',
+                spark: 'sp1...'
+            },
+            privateKeys: {
+                // These would be encrypted in production
+                bitcoin: { wif: '...', hex: '...' },
+                spark: { hex: '...' }
+            },
+            createdAt: new Date().toISOString()
+        };
+        
+        const exportResult = await walletExportService.exportWallet(
+            walletData,
+            password,
+            format
+        );
+        
+        res.json(exportResult);
+    } catch (error) {
+        console.error('Export wallet error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Import wallet from encrypted backup
+app.post('/api/wallet/import/encrypted', async (req, res) => {
+    try {
+        const { encryptedData, password } = req.body;
+        
+        if (!encryptedData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Encrypted data is required'
+            });
+        }
+        
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Password is required'
+            });
+        }
+        
+        const importResult = await walletImportService.importWallet(
+            encryptedData,
+            password
+        );
+        
+        res.json(importResult);
+    } catch (error) {
+        console.error('Import wallet error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Batch export multiple wallets
+app.post('/api/wallet/export/batch', async (req, res) => {
+    try {
+        const { walletIds, password } = req.body;
+        
+        if (!walletIds || !Array.isArray(walletIds) || walletIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Wallet IDs array is required'
+            });
+        }
+        
+        if (!password || password.length < 12) {
+            return res.status(400).json({
+                success: false,
+                error: 'Password must be at least 12 characters'
+            });
+        }
+        
+        // In production, fetch wallet data from database
+        // Mock data for demonstration
+        const walletsData = {};
+        for (const id of walletIds) {
+            walletsData[id] = {
+                walletId: id,
+                name: `Wallet ${id}`,
+                mnemonic: 'example mnemonic phrase',
+                network: 'MAINNET',
+                addresses: {
+                    bitcoin: `bc1q...${id}`,
+                    spark: `sp1...${id}`
+                },
+                privateKeys: {
+                    bitcoin: { wif: '...', hex: '...' },
+                    spark: { hex: '...' }
+                }
+            };
+        }
+        
+        // Progress tracking
+        const progressUpdates = [];
+        const progressCallback = (progress) => {
+            progressUpdates.push(progress);
+            // In production, could send SSE or WebSocket updates
+        };
+        
+        const batchResult = await walletExportService.exportMultiple(
+            walletIds,
+            walletsData,
+            password,
+            progressCallback
+        );
+        
+        res.json(batchResult);
+    } catch (error) {
+        console.error('Batch export error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Batch import multiple wallets
+app.post('/api/wallet/import/batch', async (req, res) => {
+    try {
+        const { batchData, password } = req.body;
+        
+        if (!batchData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Batch data is required'
+            });
+        }
+        
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Password is required'
+            });
+        }
+        
+        // Progress tracking
+        const progressUpdates = [];
+        const progressCallback = (progress) => {
+            progressUpdates.push(progress);
+        };
+        
+        const importResult = await walletImportService.importBatch(
+            batchData,
+            password,
+            progressCallback
+        );
+        
+        res.json(importResult);
+    } catch (error) {
+        console.error('Batch import error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get available export formats
+app.get('/api/wallet/export/formats', (req, res) => {
+    res.json({
+        success: true,
+        formats: [
+            {
+                id: 'json',
+                name: 'JSON File',
+                description: 'Encrypted JSON file for easy backup and restore',
+                fileExtension: '.json',
+                recommended: true
+            },
+            {
+                id: 'qr',
+                name: 'QR Codes',
+                description: 'Split into multiple QR codes for paper storage',
+                fileExtension: '.json',
+                maxSize: '2KB per QR code'
+            },
+            {
+                id: 'paper',
+                name: 'Paper Wallet',
+                description: 'Printable HTML format for physical backup',
+                fileExtension: '.html',
+                features: ['Printable', 'Includes checksum', 'Offline storage']
+            }
+        ]
+    });
+});
+
+// Validate import data before decryption
+app.post('/api/wallet/validate-import', async (req, res) => {
+    try {
+        const { fileData } = req.body;
+        
+        if (!fileData) {
+            return res.status(400).json({
+                success: false,
+                error: 'File data is required'
+            });
+        }
+        
+        const validationResult = await walletImportService.preValidateImport(fileData);
+        
+        res.json({
+            success: true,
+            validation: validationResult
+        });
+    } catch (error) {
+        console.error('Validation error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Process QR code chunks
+app.post('/api/wallet/import/qr-chunks', async (req, res) => {
+    try {
+        const { chunks } = req.body;
+        
+        if (!chunks || !Array.isArray(chunks)) {
+            return res.status(400).json({
+                success: false,
+                error: 'QR chunks array is required'
+            });
+        }
+        
+        const reassembled = await walletImportService.processQRChunks(chunks);
+        
+        res.json({
+            success: true,
+            data: reassembled
+        });
+    } catch (error) {
+        console.error('QR processing error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Extract from paper wallet HTML
+app.post('/api/wallet/import/paper', async (req, res) => {
+    try {
+        const { htmlContent } = req.body;
+        
+        if (!htmlContent) {
+            return res.status(400).json({
+                success: false,
+                error: 'HTML content is required'
+            });
+        }
+        
+        const extracted = walletImportService.extractFromPaperWallet(htmlContent);
+        
+        res.json({
+            success: true,
+            data: extracted
+        });
+    } catch (error) {
+        console.error('Paper wallet extraction error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Proxy endpoints for external APIs to avoid CORS issues
 app.get('/api/proxy/bitcoin-price', async (req, res) => {
     try {
@@ -952,6 +1411,84 @@ app.get('/api/proxy/mempool/blocks', async (req, res) => {
         res.json(data);
     } catch (error) {
         console.error('Mempool blocks proxy error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Additional proxy endpoints for CORS compliance
+app.get('/api/proxy/coingecko-price', async (req, res) => {
+    try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('CoinGecko price proxy error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get('/api/proxy/blockstream/address/:address/utxo', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const response = await fetch(`https://blockstream.info/api/address/${address}/utxo`);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Blockstream UTXO proxy error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get('/api/proxy/blockstream/fee-estimates', async (req, res) => {
+    try {
+        const response = await fetch('https://blockstream.info/api/fee-estimates');
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Blockstream fee proxy error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get('/api/proxy/bip39-wordlist', async (req, res) => {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/english.txt');
+        const text = await response.text();
+        const words = text.trim().split('\n');
+        res.json({ words });
+    } catch (error) {
+        console.error('BIP39 wordlist proxy error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.get('/api/proxy/blockchain/balance/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const response = await fetch(`https://blockchain.info/q/addressbalance/${address}`);
+        const satoshis = await response.text();
+        res.json({ 
+            success: true,
+            balance: satoshis.trim(),
+            address: address
+        });
+    } catch (error) {
+        console.error('Blockchain balance proxy error:', error);
         res.status(500).json({
             success: false,
             error: error.message

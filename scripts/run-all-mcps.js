@@ -13,6 +13,8 @@ const commands = [
     { name: 'TestSprite', cmd: 'npm test', required: true },
     { name: 'Memory Check', cmd: 'node scripts/check-memory.js', required: true },
     { name: 'Security Scan', cmd: 'node scripts/check-security.js', required: true },
+    { name: 'Context7 MCP', cmd: 'node mcp-servers/context7/index.js', required: false },
+    { name: 'Firecrawl MCP', cmd: 'node mcp-servers/firecrawl/index.js stats', required: false },
     { name: 'ESLint Security', cmd: 'npx eslint src/ --ext .js --plugin security', required: false },
     { name: 'Audit', cmd: 'npm audit --audit-level=high', required: false }
 ];

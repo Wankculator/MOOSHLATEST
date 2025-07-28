@@ -5,9 +5,10 @@
  */
 
 class SecureStorage {
-    constructor() {
+    constructor(stateManager = null) {
         this.initialized = false;
         this.encryptionKey = null;
+        this.stateManager = stateManager;
     }
 
     /**
@@ -166,7 +167,11 @@ class SecureStorage {
 
         const key = isImport ? 'moosh_encrypted_import' : 'moosh_encrypted_seed';
         try {
-            localStorage.setItem(key, encrypted);
+            if (this.stateManager) {
+                this.stateManager.set(key, encrypted);
+            } else {
+                localStorage.setItem(key, encrypted);
+            }
             ComplianceUtils.log('SecureStorage', 'Seed stored securely', 'info');
             return true;
         } catch (error) {
@@ -182,7 +187,7 @@ class SecureStorage {
      */
     async retrieveSeed(isImport = false) {
         const key = isImport ? 'moosh_encrypted_import' : 'moosh_encrypted_seed';
-        const encrypted = localStorage.getItem(key);
+        const encrypted = this.stateManager ? this.stateManager.get(key) : localStorage.getItem(key);
         
         if (!encrypted) {
             ComplianceUtils.log('SecureStorage', 'No encrypted seed found', 'warn');
@@ -200,12 +205,21 @@ class SecureStorage {
         this.initialized = false;
         
         // Clear encrypted seeds
-        localStorage.removeItem('moosh_encrypted_seed');
-        localStorage.removeItem('moosh_encrypted_import');
-        
-        // Clear old unencrypted seeds (migration)
-        localStorage.removeItem('generatedSeed');
-        localStorage.removeItem('importedSeed');
+        if (this.stateManager) {
+            this.stateManager.remove('moosh_encrypted_seed');
+            this.stateManager.remove('moosh_encrypted_import');
+            
+            // Clear old unencrypted seeds (migration)
+            this.stateManager.remove('generatedSeed');
+            this.stateManager.remove('importedSeed');
+        } else {
+            localStorage.removeItem('moosh_encrypted_seed');
+            localStorage.removeItem('moosh_encrypted_import');
+            
+            // Clear old unencrypted seeds (migration)
+            localStorage.removeItem('generatedSeed');
+            localStorage.removeItem('importedSeed');
+        }
         
         ComplianceUtils.log('SecureStorage', 'All sensitive data cleared', 'info');
     }
@@ -215,7 +229,7 @@ class SecureStorage {
      * @returns {Uint8Array} Salt bytes
      */
     getSalt() {
-        const stored = localStorage.getItem('moosh_salt');
+        const stored = this.stateManager ? this.stateManager.get('moosh_salt') : localStorage.getItem('moosh_salt');
         if (stored) {
             return Uint8Array.from(atob(stored), c => c.charCodeAt(0));
         }
@@ -227,7 +241,11 @@ class SecureStorage {
      * @param {Uint8Array} salt - Salt bytes
      */
     setSalt(salt) {
-        localStorage.setItem('moosh_salt', btoa(String.fromCharCode.apply(null, salt)));
+        if (this.stateManager) {
+            this.stateManager.set('moosh_salt', btoa(String.fromCharCode.apply(null, salt)));
+        } else {
+            localStorage.setItem('moosh_salt', btoa(String.fromCharCode.apply(null, salt)));
+        }
     }
 
     /**
@@ -248,12 +266,16 @@ class SecureStorage {
         const testValue = 'MOOSH_WALLET_CHECK';
         
         // First time - store encrypted test value
-        const stored = localStorage.getItem(testKey);
+        const stored = this.stateManager ? this.stateManager.get(testKey) : localStorage.getItem(testKey);
         if (!stored) {
             await this.initialize(password);
             const encrypted = await this.encrypt(testValue);
             if (encrypted) {
-                localStorage.setItem(testKey, encrypted);
+                if (this.stateManager) {
+                    this.stateManager.set(testKey, encrypted);
+                } else {
+                    localStorage.setItem(testKey, encrypted);
+                }
                 return true;
             }
             return false;

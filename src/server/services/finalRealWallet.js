@@ -18,7 +18,9 @@ function generateRealMnemonic() {
     
     // Generate 12 words
     for (let i = 0; i < 12; i++) {
-        if (Math.random() < 0.3 && i < bases.length) {
+        // Use crypto-secure randomness for word selection
+        const randomByte = crypto.randomBytes(1)[0];
+        if (randomByte < 77 && i < bases.length) { // ~30% chance (77/256)
             words.push(bases[i]);
         } else {
             const idx = crypto.randomBytes(2).readUInt16BE(0) % WORDS_12.length;

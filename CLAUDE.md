@@ -7,6 +7,7 @@
 - ✅ You can process the entire 33,000+ line codebase efficiently
 - ✅ Implementation should be RAPID and THOROUGH
 - ✅ No need for "1 day" estimates - work should be completed quickly
+- ✅ You can spawn recursive sub-agents for complex tasks (see Multi-Agent section)
 
 ## 🎯 Project Overview
 MOOSH Wallet is a professional-grade, non-custodial Bitcoin/Spark Protocol wallet with:
@@ -883,3 +884,171 @@ Before considering ANY task complete:
 If any answer is NO, the task is NOT complete.
 
 **This is the way.**
+
+---
+
+## 🤖 MULTI-AGENT ORCHESTRATION SYSTEM (NEW)
+
+### Overview
+For complex features requiring parallel development, use the recursive agent system:
+
+### Agent Roles and Responsibilities
+
+#### 1. **ARCHITECT Agent** (Planning & Decomposition)
+- Analyzes requirements and creates MULTI_AGENT_PLAN.md
+- Breaks down complex features into sub-tasks
+- Assigns tasks to appropriate agents
+- Manages inter-agent dependencies
+
+#### 2. **BUILDER Agent** (Implementation)
+- Reads tasks from MULTI_AGENT_PLAN.md
+- Implements assigned features
+- Creates/modifies code following MOOSH guidelines
+- Runs MCP validations after each change
+
+#### 3. **VALIDATOR Agent** (Testing & Quality)
+- Reviews Builder's implementations
+- Runs comprehensive tests
+- Ensures MCP compliance
+- Reports issues back to Architect
+
+#### 4. **SCRIBE Agent** (Documentation)
+- Documents all changes
+- Updates feature documentation
+- Maintains CLAUDE.md
+- Creates user guides
+
+### Multi-Agent Workflow
+
+#### 1. **Task Initiation**
+```markdown
+User: "Implement advanced portfolio analytics with charts"
+
+Architect Agent Response:
+Creating MULTI_AGENT_PLAN.md with task breakdown:
+- Builder 1: Chart component implementation
+- Builder 2: Analytics calculation engine
+- Builder 3: API integration
+- Validator: Test all components
+- Scribe: Document features
+```
+
+#### 2. **Parallel Execution**
+```bash
+# Terminal 1 - Architect
+claude > You are ARCHITECT. Plan portfolio analytics feature.
+
+# Terminal 2 - Builder 1
+claude > You are BUILDER-1. Read MULTI_AGENT_PLAN.md, implement charts.
+
+# Terminal 3 - Builder 2
+claude > You are BUILDER-2. Read MULTI_AGENT_PLAN.md, implement analytics.
+
+# Terminal 4 - Validator
+claude > You are VALIDATOR. Monitor builders, test implementations.
+```
+
+#### 3. **Communication Protocol**
+All agents communicate through shared files:
+- `MULTI_AGENT_PLAN.md` - Task assignments and status
+- `AGENT_PROGRESS.md` - Real-time progress updates
+- `VALIDATION_REPORT.md` - Test results and issues
+
+### When to Use Multi-Agent System
+
+✅ **USE FOR:**
+- Features requiring 1000+ lines of code
+- Complex integrations (multiple APIs)
+- Major refactoring projects
+- Full module extractions
+- Security-critical implementations
+
+❌ **DON'T USE FOR:**
+- Simple bug fixes
+- Minor UI tweaks
+- Documentation updates
+- Single-file changes
+
+### Example Multi-Agent Task
+
+```markdown
+# MULTI_AGENT_PLAN.md
+## Task: Implement Hardware Wallet Support
+
+### ARCHITECT ASSIGNMENTS:
+1. BUILDER-1: USB device communication layer
+   - Status: IN_PROGRESS
+   - Files: /src/hardware/usb-driver.js
+   
+2. BUILDER-2: Ledger/Trezor protocol implementation
+   - Status: PENDING
+   - Dependencies: Wait for BUILDER-1
+   
+3. BUILDER-3: UI integration
+   - Status: PENDING
+   - Files: /public/js/modules/modals/hardware-wallet-modal.js
+   
+4. VALIDATOR: Test all hardware integrations
+   - Status: WAITING
+   
+5. SCRIBE: Create user guide for hardware wallets
+   - Status: WAITING
+```
+
+### Best Practices
+
+1. **Clear Task Boundaries**
+   - Each agent owns specific files/features
+   - No overlapping responsibilities
+   - Clear handoff points
+
+2. **Regular Synchronization**
+   - Agents check MULTI_AGENT_PLAN.md every 5 minutes
+   - Update progress immediately
+   - Flag blockers to Architect
+
+3. **MCP Compliance**
+   - Each Builder runs MCP after changes
+   - Validator does final comprehensive check
+   - No merging until all MCPs pass
+
+4. **Git Branch Strategy**
+   ```bash
+   main
+   ├── feature/hardware-wallet (Architect)
+   ├── feature/hw-usb (Builder-1)
+   ├── feature/hw-protocols (Builder-2)
+   └── feature/hw-ui (Builder-3)
+   ```
+
+### Recursive Sub-Agent Spawning
+
+For deeply nested tasks, agents can spawn sub-agents:
+
+```markdown
+ARCHITECT: "Analyze entire codebase for security vulnerabilities"
+├── SUB-AGENT-1: Analyze authentication system
+│   ├── SUB-SUB-AGENT-1: Check password handling
+│   └── SUB-SUB-AGENT-2: Verify session management
+├── SUB-AGENT-2: Analyze crypto operations
+│   ├── SUB-SUB-AGENT-1: Check key generation
+│   └── SUB-SUB-AGENT-2: Verify signing procedures
+└── SUB-AGENT-3: Analyze API endpoints
+```
+
+### Integration with MOOSH Workflow
+
+1. **MCP Validation**: Every agent must pass MCP checks
+2. **Documentation**: Scribe updates docs in real-time
+3. **Security**: Validator double-checks all crypto code
+4. **Performance**: Monitor memory usage across agents
+
+### Emergency Procedures
+
+If multi-agent system fails:
+1. All agents STOP immediately
+2. Architect assesses situation
+3. Create RECOVERY_PLAN.md
+4. Resume with adjusted strategy
+
+---

@@ -1,0 +1,75 @@
+Guide to Setting Up Claude Code for Recursive Agent Systems
+Claude Code is Anthropic's CLI-based agentic coding tool that enables hierarchical, recursive AI agents for tasks like code analysis, microservice design, and complex workflows. It leverages Claude models to create sub-agents, orchestrate tasks, and manage sessions, as demonstrated in your screenshot (e.g., recursive Python module analysis and 20-agent hierarchies). Below is a comprehensive setup guide, drawing from official docs and community best practices.docs.anthropic.com+2 more This allows self-scaling systems with intelligent routing and context passing.
+
+Step 1: System Requirements and Prerequisites
+OS: macOS 10.15+, Ubuntu 20.04+/Debian 10+, Windows 10+ (with WSL, Git Bash, or native support).
+Hardware/Software: 4GB+ RAM, Node.js 18+ (install from nodejs.org), internet for API calls.
+Anthropic Account: Sign up at console.anthropic.com. Enable billing for API access (or use Claude Pro/Max for authentication). Generate an API key if needed for custom setups.
+Supported Regions: Check anthropic.com/supported-countries.
+Step 2: Install Claude Code
+Install globally via npm (avoid sudo for security):
+text
+
+Collapse
+
+Wrap
+
+Copy
+npm install -g @anthropic-ai/claude-code
+For Windows: Use WSL or Git Bash (install Git from git-scm.com). Set env var if needed: export CLAUDE_CODE_GIT_BASH_PATH="C:\Program Files\Git\bin\bash.exe".
+Alternative (alpha native binary): Run curl -fsSL claude.ai/install.sh | bash.
+Verify: Run claude doctor to check version and setup. If issues, see docs.anthropic.com/en/docs/claude-code/troubleshooting.
+Update: Auto-updates happen on startup; disable with claude config set autoUpdates false --global or manual claude update.
+Step 3: Authentication and Initial Launch
+Launch: Navigate to your project dir (cd your-project) and run claude.
+Authenticate: Follow prompts for Anthropic Console OAuth, Claude App (Pro/Max), or enterprise (Bedrock/Vertex AI).
+Credentials are stored securely; manage via docs.anthropic.com/en/docs/claude-code/iam.
+Step 4: Configure for Recursive/Hierarchical Agents
+To enable recursive agents (e.g., main agent spawning sub-agents for nested tasks like code analysis):
+
+Create CLAUDE.md for Customization: In project root, add a CLAUDE.md file with guidelines (e.g., code style, bash commands). Use /init in Claude to generate. Example for recursive tasks:
+text
+
+Collapse
+
+Wrap
+
+Copy
+# Core Instructions
+Use recursive sub-agents for deep analysis: Spawn sub-agents for file scanning, unit tests, and API docs.
+IMPORTANT: Route tasks intelligently—e.g., delegate code gen to Builder sub-agent.
+Enable Tools: Customize allowlist with /permissions (e.g., allow git, file edits). Integrate MCP for advanced tools like Puppeteer: Add to .mcp.json or project config.
+Session Management: Use claude config for memory locations. For recursive sessions:
+Clear context: /clear.
+Undo: /undo.
+Manage multi-sessions: Run multiple terminals for parallel agents.
+Step 5: Build a Multi-Agent Orchestration System (Recursive Setup)
+Based on community workflows for hierarchical agents (e.g., Architect > Builder > Validator):
+
+Prepare Memory Templates: Create /memory/multi-agent-template.md defining roles:
+Agent 1 (Architect): Planning/recursive decomposition.
+Agent 2 (Builder): Implementation.
+Agent 3 (Validator): Testing.
+Agent 4 (Scribe): Docs. Include communication protocols (e.g., shared MULTI_AGENT_PLAN.md for task routing).
+Launch Agents:
+Open multiple terminals in VSCode.
+Terminal 1: claude > You are Agent 1 - Architect. Create MULTI_AGENT_PLAN.md with recursive tasks.
+Others: claude > You are Agent [2/3/4]. Read MULTI_AGENT_PLAN.md.
+Task Routing & Hierarchy:
+Use shared Markdown doc for assignments (e.g., Architect decomposes Python module into sub-tasks).
+Recursive Spawning: Prompt main agent to "spawn sub-agent for unit tests" via natural language.
+Parallel Execution: Run agents concurrently; use Git branches per agent.
+Context Passing: Agents read/write to planning doc. For handoffs, use session IDs and safe wrappers to avoid hangs.
+Example for Code Analysis (Like Screenshot):
+Prompt: "Analyze Python module recursively: Spawn sub-agents for functions, classes, docs."
+Outputs: API docs, usage examples, unit tests—mirroring the screenshot's nested workflows.
+Step 6: Best Practices for Agentic/Recursive Use
+Prompts: Be specific (e.g., "Think hard: Plan 5 recursive Claude instances for microservice builders."). Use checklists for large tasks.
+Workflows: For code analysis, start with exploration ("read file.py"), plan, code, test iteratively. Use sub-agents for verification.
+Optimization: Give images/URLs for context. Course-correct with Escape key. For multi-agent: Assign granular tasks to prevent duplication.
+Troubleshooting: Context loss? Re-read planning doc. Conflicts? Architect resolves. Hangs? Use --dangerously-skip-permissions in isolated envs.
+Next Steps
+Test a simple recursive task: Run Claude to analyze a sample Python file hierarchically.
+Explore advanced: Integrate gh CLI for GitHub, or MCP for browser testing.
+Resources: Docs at docs.anthropic.com/en/docs/claude-code, community on Reddit (r/ClaudeAI).
+If issues, run claude doctor or check troubleshooting guides.

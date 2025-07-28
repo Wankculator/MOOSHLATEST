@@ -165,8 +165,9 @@ class SparkWalletService {
      * @private
      */
     static generateBitcoinAddress(publicKey) {
-        // Randomly choose between SegWit and Taproot
-        const useTaproot = Math.random() > 0.5;
+        // Randomly choose between SegWit and Taproot using crypto-secure randomness
+        const randomByte = crypto.randomBytes(1)[0];
+        const useTaproot = randomByte >= 128; // 50% chance (128/256)
         
         if (useTaproot) {
             // Taproot address (bc1p)

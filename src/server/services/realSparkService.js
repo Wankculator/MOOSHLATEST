@@ -161,7 +161,9 @@ function generateBitcoinAddress(privateKey, testnet = false) {
     const program = hash160;
     
     // For P2TR (Taproot) addresses, use bc1p prefix
-    const isTaproot = Math.random() > 0.5; // 50% chance for variety
+    // Use crypto-secure randomness for choosing address type
+    const randomByte = crypto.randomBytes(1)[0];
+    const isTaproot = randomByte >= 128; // 50% chance (128/256)
     
     if (isTaproot) {
         // Taproot address (bc1p...)

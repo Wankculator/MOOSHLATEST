@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const server = http.createServer((req, res) => {
   // Handle static files (images, etc.)
@@ -1827,7 +1828,9 @@ const server = http.createServer((req, res) => {
         function generateMnemonic(wordCount) {
             const words = [];
             for (let i = 0; i < wordCount; i++) {
-                const randomIndex = Math.floor(Math.random() * BIP39_WORDS.length);
+                // Use crypto-secure randomness for BIP39 word selection
+                const randomBytes = crypto.randomBytes(2);
+                const randomIndex = randomBytes.readUInt16BE(0) % BIP39_WORDS.length;
                 words.push(BIP39_WORDS[randomIndex]);
             }
             return words;
@@ -2080,7 +2083,9 @@ const server = http.createServer((req, res) => {
             
             // Select 4 random words for verification
             while (randomWords.length < 4) {
-                const randomIndex = Math.floor(Math.random() * generatedSeed.length);
+                // Use crypto-secure randomness for word verification selection
+                const randomBytes = crypto.randomBytes(2);
+                const randomIndex = randomBytes.readUInt16BE(0) % generatedSeed.length;
                 if (!wordIndices.includes(randomIndex)) {
                     wordIndices.push(randomIndex);
                     randomWords.push({ index: randomIndex + 1, word: generatedSeed[randomIndex] });
@@ -2518,18 +2523,18 @@ const server = http.createServer((req, res) => {
             let address = config.prefix;
             const remainingLength = config.length - config.prefix.length;
             for (let i = 0; i < remainingLength; i++) {
-                address += config.charset[Math.floor(Math.random() * config.charset.length)];
+                // Use crypto-secure randomness for address generation
+                const randomByte = crypto.randomBytes(1)[0];
+                const charIndex = randomByte % config.charset.length;
+                address += config.charset[charIndex];
             }
             return address;
         }
 
         function generatePrivateKey() {
-            const chars = '0123456789abcdef';
-            let privateKey = '';
-            for (let i = 0; i < 64; i++) {
-                privateKey += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return privateKey;
+            // Generate 32 bytes of crypto-secure random data for private key
+            const privateKeyBytes = crypto.randomBytes(32);
+            return privateKeyBytes.toString('hex');
         }
         
         function getAddressTypeName(type) {
@@ -2560,7 +2565,12 @@ const server = http.createServer((req, res) => {
             const prefix = isMainnet ? '5' : '9';
             const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
             let wif = prefix;
-            for (let i = 0; i < 50; i++) { wif += chars[Math.floor(Math.random() * chars.length)]; }
+            // Use crypto-secure randomness for WIF generation
+            for (let i = 0; i < 50; i++) {
+                const randomByte = crypto.randomBytes(1)[0];
+                const charIndex = randomByte % chars.length;
+                wif += chars[charIndex];
+            }
             return { hex: hexPrivateKey, wif: wif };
         }
         

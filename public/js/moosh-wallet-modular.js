@@ -18,6 +18,8 @@
         '/js/modules/core/responsive-utils.js',   // Depends on ElementFactory
         '/js/modules/core/compliance-utils.js',   // Standards enforcement utilities
         '/js/modules/core/secure-storage.js',     // Secure storage (StateManager dependency)
+        '/js/modules/core/encrypted-storage.js',  // Client-side encryption for persistence
+        '/js/modules/core/secure-state-persistence.js', // Secure state persistence integration
         '/js/modules/core/state-manager.js',      // State management system
         '/js/modules/core/api-service.js',        // API integration and external data
         '/js/modules/core/component.js',          // Base class for UI components
@@ -26,8 +28,14 @@
         // Feature modules
         '/js/modules/features/wallet-detector.js', // Wallet type detection
         '/js/modules/features/ordinals-manager.js', // Ordinals/inscriptions management
+        '/js/modules/features/multi-wallet-manager.js', // Multi-wallet system
+        '/js/modules/core/multi-wallet-integration.js', // Multi-wallet state integration
         // '/js/modules/features/wallet-manager.js',
         // '/js/modules/features/transaction-manager.js',
+        
+        // Services
+        '/js/modules/services/password-service.js',   // Secure password hashing (PBKDF2)
+        '/js/modules/services/transaction-signer.js', // Client-side transaction signing
         
         // UI modules
         '/js/modules/ui/button.js',               // Button component
@@ -53,6 +61,9 @@
         '/js/modules/modals/SparkDashboardModal.js', // Spark Protocol dashboard modal
         '/js/modules/modals/SparkDepositModal.js', // Spark Protocol deposit modal
         '/js/modules/modals/LightningChannelModal.js', // Lightning Network channel modal
+        '/js/modules/modals/wallet-manager-modal.js', // Multi-wallet management modal
+        '/js/modules/modals/ExportWalletModal.js', // Export wallet with encryption
+        '/js/modules/modals/ImportWalletModal.js', // Import wallet with decryption
         
         // Page modules
         '/js/modules/pages/home-page.js',         // Home page component

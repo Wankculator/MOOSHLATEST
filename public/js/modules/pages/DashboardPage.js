@@ -100,6 +100,20 @@
                 this.loadCurrentAccountData();
             };
             
+            // Listen for wallet change events
+            this.walletChangeHandler = (e) => {
+                console.log('[DashboardPage] Wallet changed:', e.detail);
+                // Update wallet name display
+                const walletNameElement = document.querySelector('#walletNameDisplay');
+                if (walletNameElement && e.detail.walletName) {
+                    walletNameElement.textContent = e.detail.walletName;
+                }
+                // Refresh account display since accounts changed
+                this.updateAccountDisplay();
+                this.loadCurrentAccountData();
+            };
+            window.addEventListener('walletChanged', this.walletChangeHandler);
+            
             // Subscribe to account switch events as well
             this.app.state.on('accountSwitched', this.accountSwitchHandler);
             
@@ -162,6 +176,16 @@
             if (this.mempoolInterval) {
                 clearInterval(this.mempoolInterval);
                 this.mempoolInterval = null;
+            }
+            
+            // Remove event listeners
+            if (this.accountSwitchHandler) {
+                this.app.state.off('accountSwitched', this.accountSwitchHandler);
+            }
+            
+            // Remove wallet change listener
+            if (this.walletChangeHandler) {
+                window.removeEventListener('walletChanged', this.walletChangeHandler);
             }
             
             // Call parent destroy to clean up state listeners
@@ -546,7 +570,40 @@
                                 },
                                 onclick: () => this.toggleBalanceVisibility(),
                                 title: 'Toggle Balance Visibility'
-                            }, [this.app.state.get('isBalanceHidden') ? 'Show' : 'Hide'])
+                            }, [this.app.state.get('isBalanceHidden') ? 'Show' : 'Hide']),
+                            
+                            // Manage Wallets button
+                            $.button({
+                                className: 'dashboard-btn',
+                                style: {
+                                    padding: isXS ? 'calc(3px * var(--scale-factor)) calc(5px * var(--scale-factor))' : 'calc(5px * var(--scale-factor)) calc(7px * var(--scale-factor))',
+                                    fontSize: isXS ? 'calc(9px * var(--scale-factor))' : 'calc(10px * var(--scale-factor))',
+                                    fontFamily: 'JetBrains Mono, monospace',
+                                    background: 'var(--bg-primary)',
+                                    border: 'calc(1px * var(--scale-factor)) solid #ff44ff',
+                                    color: '#ff44ff',
+                                    borderRadius: '0',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: isXS ? 'calc(40px * var(--scale-factor))' : 'calc(70px * var(--scale-factor))',
+                                    height: isXS ? 'calc(20px * var(--scale-factor))' : 'calc(24px * var(--scale-factor))',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxSizing: 'border-box'
+                                },
+                                onmouseover: (e) => {
+                                    e.currentTarget.style.background = '#ff44ff';
+                                    e.currentTarget.style.color = '#000000';
+                                },
+                                onmouseout: (e) => {
+                                    e.currentTarget.style.background = '#000000';
+                                    e.currentTarget.style.color = '#ff44ff';
+                                },
+                                onclick: () => this.showWalletManager(),
+                                title: 'Manage Multiple Wallets'
+                            }, [isXS ? 'Wallets' : 'Wallets'])
                         ])
                     ]),
                     
@@ -561,6 +618,45 @@
                             boxSizing: 'border-box'
                         }
                     }, [
+                        // Current wallet indicator with dropdown
+                        this.app.walletManager && $.div({
+                            style: {
+                                display: 'inline-block',
+                                position: 'relative'
+                            }
+                        }, [
+                            $.div({
+                                style: {
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '4px 8px',
+                                    background: 'rgba(255, 68, 255, 0.1)',
+                                    border: '1px solid rgba(255, 68, 255, 0.3)',
+                                    borderRadius: '0',
+                                    fontSize: '10px',
+                                    fontFamily: 'JetBrains Mono, monospace',
+                                    color: '#ff44ff',
+                                    marginBottom: '4px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                },
+                                onclick: (e) => this.toggleWalletDropdown(e),
+                                onmouseover: (e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 68, 255, 0.2)';
+                                    e.currentTarget.style.borderColor = '#ff44ff';
+                                },
+                                onmouseout: (e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 68, 255, 0.1)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 68, 255, 0.3)';
+                                },
+                                title: 'Click for quick wallet switch'
+                            }, [
+                                $.span({ style: { fontWeight: 'bold' } }, ['Wallet: ']),
+                                $.span({ id: 'walletNameDisplay' }, [this.getCurrentWalletName()]),
+                                $.span({ style: { marginLeft: '6px', fontSize: '8px' } }, ['▼'])
+                            ])
+                        ]),
+                        
                         // Wallet address display - with frame that fits content and click to copy
                         $.div({
                             id: 'walletAddressDisplay',
@@ -1583,9 +1679,27 @@
                     onclick: () => this.showReceivePayment()
                 }, ['Receive Payment']),
                 
+                // Export Wallet button
                 $.button({
                     className: 'btn-secondary',
-                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer; font-weight: 600;',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer; margin-top: calc(16px * var(--scale-factor));',
+                    onclick: () => this.showExportWallet(),
+                    onmouseover: function() { this.style.background = 'var(--text-accent)'; this.style.color = 'var(--bg-primary)'; },
+                    onmouseout: function() { this.style.background = '#000000'; this.style.color = 'var(--text-accent)'; }
+                }, ['Export Wallet 📤']),
+                
+                // Import Wallet button
+                $.button({
+                    className: 'btn-secondary',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer;',
+                    onclick: () => this.showImportWallet(),
+                    onmouseover: function() { this.style.background = 'var(--text-accent)'; this.style.color = 'var(--bg-primary)'; },
+                    onmouseout: function() { this.style.background = '#000000'; this.style.color = 'var(--text-accent)'; }
+                }, ['Import Wallet 📥']),
+                
+                $.button({
+                    className: 'btn-secondary',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer; font-weight: 600; margin-top: calc(16px * var(--scale-factor));',
                     onclick: () => this.showOrdinalsTerminal(),
                     onmouseover: (e) => {
                         e.currentTarget.style.background = 'var(--text-accent)';
@@ -1602,6 +1716,20 @@
                     style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--border-active); color: var(--text-primary); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer;',
                     onclick: () => this.showTokenMenu()
                 }, ['Token Menu']),
+                
+                $.button({
+                    className: 'btn-secondary',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid #69fd97; color: #69fd97; border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer; font-weight: 600;',
+                    onclick: () => this.app.showWalletManager(),
+                    onmouseover: (e) => {
+                        e.currentTarget.style.background = '#69fd97';
+                        e.currentTarget.style.color = '#000000';
+                    },
+                    onmouseout: (e) => {
+                        e.currentTarget.style.background = '#000000';
+                        e.currentTarget.style.color = '#69fd97';
+                    }
+                }, ['Manage Wallets']),
                 
                 $.button({
                     className: 'btn-secondary',
@@ -3850,6 +3978,132 @@
             modal.show();
         }
         
+        showWalletManager() {
+            const WalletManagerModal = window.WalletManagerModal;
+            if (WalletManagerModal) {
+                const modal = new WalletManagerModal(this.app);
+                modal.show();
+            } else {
+                this.app.showNotification('Wallet Manager not available yet', 'error');
+            }
+        }
+        
+        toggleWalletDropdown(e) {
+            e.stopPropagation();
+            
+            // Check if dropdown already exists
+            const existingDropdown = document.getElementById('wallet-quick-dropdown');
+            if (existingDropdown) {
+                existingDropdown.remove();
+                return;
+            }
+            
+            if (!this.app.walletManager) return;
+            
+            const $ = window.ElementFactory || window.$;
+            const wallets = this.app.walletManager.getAllWallets();
+            const activeWalletId = this.app.walletManager.activeWalletId;
+            
+            // Create dropdown
+            const dropdown = $.div({
+                id: 'wallet-quick-dropdown',
+                style: {
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    marginTop: '4px',
+                    background: '#000',
+                    border: '1px solid #ff44ff',
+                    borderRadius: '0',
+                    minWidth: '200px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: '10000',
+                    boxShadow: '0 2px 10px rgba(255, 68, 255, 0.3)'
+                }
+            }, wallets.map(wallet => 
+                $.div({
+                    style: {
+                        padding: '8px 12px',
+                        fontSize: '11px',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        color: wallet.id === activeWalletId ? '#ff44ff' : '#888',
+                        background: wallet.id === activeWalletId ? 'rgba(255, 68, 255, 0.1)' : 'transparent',
+                        cursor: wallet.id === activeWalletId ? 'default' : 'pointer',
+                        borderBottom: '1px solid #222',
+                        transition: 'all 0.2s ease'
+                    },
+                    onmouseover: (e) => {
+                        if (wallet.id !== activeWalletId) {
+                            e.currentTarget.style.background = 'rgba(255, 68, 255, 0.05)';
+                            e.currentTarget.style.color = '#ff44ff';
+                        }
+                    },
+                    onmouseout: (e) => {
+                        if (wallet.id !== activeWalletId) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#888';
+                        }
+                    },
+                    onclick: () => {
+                        if (wallet.id !== activeWalletId) {
+                            this.app.walletManager.switchWallet(wallet.id);
+                            dropdown.remove();
+                        }
+                    }
+                }, [
+                    $.div({
+                        style: {
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }
+                    }, [
+                        $.span({}, [wallet.name]),
+                        wallet.id === activeWalletId && $.span({
+                            style: {
+                                fontSize: '9px',
+                                color: '#ff44ff',
+                                marginLeft: '8px'
+                            }
+                        }, ['(active)'])
+                    ]),
+                    $.div({
+                        style: {
+                            fontSize: '9px',
+                            color: '#666',
+                            marginTop: '2px'
+                        }
+                    }, [`${this.app.walletManager.getWalletStats(wallet.id).accountCount} accounts`])
+                ])
+            ));
+            
+            // Add to parent container
+            e.currentTarget.parentElement.appendChild(dropdown);
+            
+            // Close on outside click
+            const closeDropdown = (event) => {
+                if (!dropdown.contains(event.target) && event.target !== e.currentTarget) {
+                    dropdown.remove();
+                    document.removeEventListener('click', closeDropdown);
+                }
+            };
+            
+            setTimeout(() => {
+                document.addEventListener('click', closeDropdown);
+            }, 0);
+        }
+        
+        getCurrentWalletName() {
+            if (!this.app.walletManager) {
+                return 'Main Wallet';
+            }
+            
+            const activeWallet = this.app.walletManager.getActiveWallet();
+            return activeWallet ? activeWallet.name : 'Main Wallet';
+        }
+        
         getAccountDisplayName() {
             const accounts = this.app.state.get('accounts') || [];
             const currentAccountId = this.app.state.get('currentAccountId');
@@ -4729,6 +4983,57 @@
             }
             
             this.app.ordinalsModal.show();
+        }
+        
+        showExportWallet() {
+            console.log('[DashboardPage] Opening export wallet modal');
+            
+            // Dynamically load the ExportWalletModal if not already loaded
+            if (!window.ExportWalletModal) {
+                const script = document.createElement('script');
+                script.src = '/js/modules/modals/ExportWalletModal.js';
+                script.onload = () => {
+                    this.openExportModal();
+                };
+                document.head.appendChild(script);
+            } else {
+                this.openExportModal();
+            }
+        }
+        
+        openExportModal() {
+            // Get current wallet data
+            const currentAccount = this.app.state.get('currentAccount');
+            const walletData = {
+                id: currentAccount?.id || 'default',
+                name: currentAccount?.name || 'Main Wallet',
+                addresses: currentAccount?.addresses || {},
+                spark: currentAccount?.spark || false
+            };
+            
+            const modal = new window.ExportWalletModal(this.app, walletData);
+            modal.show();
+        }
+        
+        showImportWallet() {
+            console.log('[DashboardPage] Opening import wallet modal');
+            
+            // Dynamically load the ImportWalletModal if not already loaded
+            if (!window.ImportWalletModal) {
+                const script = document.createElement('script');
+                script.src = '/js/modules/modals/ImportWalletModal.js';
+                script.onload = () => {
+                    this.openImportModal();
+                };
+                document.head.appendChild(script);
+            } else {
+                this.openImportModal();
+            }
+        }
+        
+        openImportModal() {
+            const modal = new window.ImportWalletModal(this.app);
+            modal.show();
         }
     }
 

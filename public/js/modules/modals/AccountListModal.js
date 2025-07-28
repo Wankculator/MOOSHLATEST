@@ -33,6 +33,11 @@
             this.balanceCache = new Map();
             this.btcPrice = 0;
             
+            // Drag and drop state
+            this.draggedAccount = null;
+            this.draggedIndex = null;
+            this.dropIndicator = null;
+            
             // Multi-currency support
             this.selectedCurrency = 'usd'; // Default to USD
             this.currencyPrices = new Map(); // Cache for all currency prices
@@ -79,6 +84,10 @@
                 activity: 'all', // all, active, inactive
                 type: 'all' // all, hd, imported
             };
+            
+            // Multi-select state
+            this.isMultiSelectMode = false;
+            this.lastSelectedIndex = null;
         }
         
         // Theme helper method
@@ -93,10 +102,10 @@
         // Balance fetching methods
         async fetchBTCPrice() {
             try {
-                // Fetch prices for all major currencies at once
+                // Fetch prices for all major currencies at once through proxy
                 const currencies = this.supportedCurrencies.map(c => c.code).join(',');
-                const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${currencies}`);
-                const data = await response.json();
+                const response = await this.app.apiService.request(`/api/proxy/bitcoin-price?currencies=${currencies}`);
+                const data = response;
                 
                 // Store all currency prices
                 if (data.bitcoin) {
@@ -130,10 +139,16 @@
             this.balanceLoading.set(account.id, true);
             const btcElement = document.querySelector(`.balance-btc-${account.id}`);
             const usdElement = document.querySelector(`.balance-usd-${account.id}`);
+            const indicatorElement = document.querySelector(`.real-time-indicator-${account.id}`);
             
             if (btcElement) {
                 btcElement.textContent = 'Refreshing...';
                 btcElement.style.color = '#faa307';
+            }
+            
+            // Show real-time indicator
+            if (indicatorElement) {
+                indicatorElement.style.opacity = '1';
             }
             
             try {
@@ -153,10 +168,13 @@
                     throw new Error('No valid address found');
                 }
                 
-                // Fetch balance from API
-                const response = await fetch(`https://blockchain.info/q/addressbalance/${address}`);
-                const satoshis = await response.text();
-                const btcBalance = parseInt(satoshis) / 100000000;
+                // Fetch balance from API through proxy
+                const response = await this.app.apiService.request(`/api/proxy/blockchain/balance/${address}`);
+                if (!response.success) {
+                    throw new Error(response.error || 'Failed to fetch balance');
+                }
+                const satoshis = parseInt(response.balance);
+                const btcBalance = satoshis / 100000000;
                 
                 // Get current currency info
                 const currencyInfo = this.supportedCurrencies.find(c => c.code === this.selectedCurrency) || 
@@ -191,6 +209,13 @@
                 this.lastBalanceUpdate.set(account.id, Date.now());
                 ComplianceUtils.log('AccountListModal', `Balance updated for ${account.name}: ${btcBalance} BTC`);
                 
+                // Fade out real-time indicator after 2 seconds
+                if (indicatorElement) {
+                    setTimeout(() => {
+                        indicatorElement.style.opacity = '0';
+                    }, 2000);
+                }
+                
             } catch (error) {
                 console.error(`[AccountListModal] Failed to fetch balance for ${account.name}:`, error);
                 
@@ -216,6 +241,41 @@
             }
             
             return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        formatActivityTime(timestamp) {
+            if (!timestamp) return 'Never';
+            
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            // Less than 1 hour
+            if (diff < 3600000) {
+                const minutes = Math.floor(diff / 60000);
+                return minutes <= 1 ? 'Just now' : `${minutes}m ago`;
+            }
+            
+            // Less than 24 hours
+            if (diff < 86400000) {
+                const hours = Math.floor(diff / 3600000);
+                return `${hours}h ago`;
+            }
+            
+            // Less than 7 days
+            if (diff < 604800000) {
+                const days = Math.floor(diff / 86400000);
+                return days === 1 ? 'Yesterday' : `${days}d ago`;
+            }
+            
+            // Less than 30 days
+            if (diff < 2592000000) {
+                const weeks = Math.floor(diff / 604800000);
+                return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+            }
+            
+            // Default to date
+            return date.toLocaleDateString();
         }
         
         changeCurrency(newCurrency) {
@@ -361,6 +421,77 @@
                     50% { opacity: 1; }
                     100% { opacity: 0.8; }
                 }
+                
+                @keyframes pulse {
+                    0% { 
+                        transform: scale(1);
+                        opacity: 0.8;
+                    }
+                    50% { 
+                        transform: scale(1.2);
+                        opacity: 1;
+                    }
+                    100% { 
+                        transform: scale(1);
+                        opacity: 0.8;
+                    }
+                }
+                
+                .real-time-indicator {
+                    animation: pulse 2s infinite;
+                }
+                
+                /* Multi-select styles */
+                .account-card.selected {
+                    border-color: ${primaryColor} !important;
+                    background: ${primaryColor}20 !important;
+                    box-shadow: 0 0 0 2px ${primaryColor};
+                }
+                
+                .account-card .select-checkbox {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid ${primaryColor};
+                    background: #000;
+                    cursor: pointer;
+                    display: none;
+                    z-index: 10;
+                }
+                
+                .multi-select-mode .account-card .select-checkbox {
+                    display: block;
+                }
+                
+                .account-card .select-checkbox.checked {
+                    background: ${primaryColor};
+                }
+                
+                .account-card .select-checkbox.checked::after {
+                    content: '✓';
+                    color: #000;
+                    font-weight: bold;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+                
+                .bulk-actions-bar {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #000;
+                    border: 2px solid ${primaryColor};
+                    padding: 15px 20px;
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                    z-index: 10001;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
                 }
                 
                 .account-grid::-webkit-scrollbar-thumb:hover {
@@ -426,7 +557,8 @@
                     this.createToolbar(),
                     this.showFilters && this.createFilterPanel(),
                     this.createAccountGrid(accounts, currentAccountId),
-                    this.createFooter()
+                    this.createFooter(),
+                    this.selectedAccounts.size > 0 && this.createBulkActionsBar()
                 ])
             ]);
             
@@ -450,6 +582,9 @@
             
             // Fetch Bitcoin price and account balances
             this.initializeBalances();
+            
+            // Start real-time balance updates
+            this.startRealTimeUpdates();
         }
         
         addCurrencySelectorStyles() {
@@ -610,6 +745,9 @@
         createHeader() {
             const $ = window.ElementFactory || ElementFactory;
             const accounts = this.app.state.get('accounts') || [];
+            const walletName = this.app.walletManager ? 
+                (this.app.walletManager.getActiveWallet()?.name || 'Main Wallet') : 
+                'Main Wallet';
             
             return $.div({ 
                 className: 'terminal-header',
@@ -621,7 +759,24 @@
                     alignItems: 'center'
                 }
             }, [
-                $.span({}, [`~/moosh/accounts $ manage (${accounts.length} account${accounts.length !== 1 ? 's' : ''})`]),
+                $.div({
+                    style: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                    }
+                }, [
+                    $.span({}, [`~/moosh/accounts $ manage (${accounts.length} account${accounts.length !== 1 ? 's' : ''})`]),
+                    $.span({
+                        style: {
+                            background: 'rgba(255, 68, 255, 0.1)',
+                            border: '1px solid rgba(255, 68, 255, 0.3)',
+                            padding: '2px 6px',
+                            fontSize: '11px',
+                            color: '#ff44ff'
+                        }
+                    }, [`Wallet: ${walletName}`])
+                ]),
                 $.button({
                     style: {
                         background: '#000',
@@ -828,6 +983,23 @@
                     }, [this.sortOrder === 'asc' ? '↑' : '↓'])
                 ]),
                 
+                // Multi-select button
+                $.button({
+                    style: {
+                        padding: '8px 16px',
+                        background: this.isMultiSelectMode ? '#69fd97' : '#000',
+                        border: '2px solid #69fd97',
+                        color: this.isMultiSelectMode ? '#000' : '#69fd97',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        transition: 'all 0.2s ease'
+                    },
+                    onclick: () => {
+                        this.toggleMultiSelectMode();
+                    }
+                }, ['MULTI-SELECT']),
+                
                 // Filter button
                 $.button({
                     style: {
@@ -1030,49 +1202,72 @@
                             gap: '20px',
                             alignContent: 'start'
                         }
-                    }, filteredAccounts.map(account => this.createAccountCard(account, account.id === currentAccountId)));
+                    }, filteredAccounts.map((account, index) => this.createAccountCard(account, account.id === currentAccountId, index)));
             }
         }
         
-        createAccountCard(account, isActive) {
+        createAccountCard(account, isActive, index) {
             const $ = window.ElementFactory || ElementFactory;
             const isEditing = this.editingAccountId === account.id;
             
             const accountColor = account.color || '#f57315';
             
+            const isSelected = this.selectedAccounts.has(account.id);
+            
             return $.div({
-                className: 'account-card',
+                className: `account-card ${isSelected ? 'selected' : ''}`,
                 'data-account-id': account.id,
-                draggable: false,
+                'data-account-index': index,
+                draggable: !this.isMultiSelectMode,
                 style: {
                     background: isActive ? `${accountColor}20` : '#111',
                     border: `2px solid ${isActive ? accountColor : (account.color || '#333')}`,
                     borderLeft: `5px solid ${accountColor}`,
                     padding: '20px',
-                    cursor: 'pointer',
+                    cursor: this.isMultiSelectMode ? 'pointer' : 'grab',
                     transition: 'all 0.2s',
                     position: 'relative',
                     userSelect: 'none'
                 },
+                // Drag events
+                ondragstart: (e) => this.handleDragStart(e, account, index),
+                ondragend: (e) => this.handleDragEnd(e),
+                ondragover: (e) => this.handleDragOver(e),
+                ondragenter: (e) => this.handleDragEnter(e),
+                ondragleave: (e) => this.handleDragLeave(e),
+                ondrop: (e) => this.handleDrop(e),
                 onclick: (e) => {
                     e.stopPropagation();
-                    if (!isActive) {
+                    if (this.isMultiSelectMode) {
+                        // Don't handle checkbox clicks here
+                        if (e.target.classList.contains('select-checkbox')) return;
+                        this.toggleAccountSelection(account.id, index, e);
+                    } else if (!isActive && !this.draggedAccount) {
                         this.switchToAccount(account);
                     }
                 },
                 onmouseover: (e) => {
-                    if (!isActive) {
+                    if (!isActive && !this.draggedAccount) {
                         e.currentTarget.style.borderColor = accountColor;
                         e.currentTarget.style.background = `${accountColor}10`;
                     }
                 },
                 onmouseout: (e) => {
-                    if (!isActive) {
+                    if (!isActive && !this.draggedAccount) {
                         e.currentTarget.style.borderColor = account.color || '#333';
                         e.currentTarget.style.background = '#111';
                     }
                 }
             }, [
+                // Selection checkbox
+                $.div({
+                    className: `select-checkbox ${isSelected ? 'checked' : ''}`,
+                    onclick: (e) => {
+                        e.stopPropagation();
+                        this.toggleAccountSelection(account.id, index, e);
+                    }
+                }),
+                
                 // Active indicator (separate row)
                 isActive && $.div({
                     style: {
@@ -1257,17 +1452,23 @@
                         }, ['DELETE'])
                 ]),
                 
-                // Account info
+                // Account info with activity data
                 $.div({ style: { fontSize: '12px', color: '#666' } }, [
                     $.p({ style: { margin: '5px 0' } }, [
                         `Created: ${new Date(account.createdAt).toLocaleDateString()}`
                     ]),
                     $.p({ style: { margin: '5px 0' } }, [
                         `Type: ${account.type || 'HD Wallet'}`
+                    ]),
+                    account.lastActivity && $.p({ style: { margin: '5px 0', color: '#69fd97' } }, [
+                        `Last Activity: ${this.formatActivityTime(account.lastActivity)}`
+                    ]),
+                    account.transactionCount !== undefined && $.p({ style: { margin: '5px 0', color: '#f57315' } }, [
+                        `Transactions: ${account.transactionCount}`
                     ])
                 ]),
                 
-                // Balance display
+                // Balance display with real-time indicator
                 $.div({ 
                     className: 'account-balance-display',
                     style: { 
@@ -1278,9 +1479,27 @@
                         fontSize: '14px',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        position: 'relative'
                     } 
                 }, [
+                    // Real-time indicator
+                    $.div({
+                        className: `real-time-indicator-${account.id}`,
+                        style: {
+                            position: 'absolute',
+                            top: '3px',
+                            right: '3px',
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: '#69fd97',
+                            opacity: '0',
+                            transition: 'opacity 0.3s ease',
+                            animation: 'pulse 2s infinite'
+                        },
+                        title: 'Real-time updates active'
+                    }),
                     $.div({}, [
                         $.span({ 
                             className: `balance-btc-${account.id}`,
@@ -1803,6 +2022,15 @@
         sortAccounts(accounts) {
             const sorted = [...accounts];
             
+            // If sorting by name and all accounts have order property, use custom order
+            if (this.sortBy === 'name' && accounts.every(acc => acc.order !== undefined)) {
+                sorted.sort((a, b) => {
+                    const compareValue = (a.order || 0) - (b.order || 0);
+                    return this.sortOrder === 'asc' ? compareValue : -compareValue;
+                });
+                return sorted;
+            }
+            
             sorted.sort((a, b) => {
                 let compareValue = 0;
                 
@@ -2091,6 +2319,606 @@
             this.searchQuery = '';
             this.selectedAccounts.clear();
             this.editingAccountId = null;
+            
+            // Stop real-time updates
+            this.stopRealTimeUpdates();
+        }
+        
+        // Real-time update methods
+        startRealTimeUpdates() {
+            ComplianceUtils.log('AccountListModal', 'Starting real-time balance updates');
+            
+            // Update balances every 30 seconds
+            this.realTimeUpdateInterval = setInterval(() => {
+                this.updateAllBalancesRealTime();
+            }, 30000); // 30 seconds
+            
+            // Also update when accounts change
+            this.realTimeAccountHandler = () => {
+                this.updateAllBalancesRealTime();
+            };
+            this.app.state.on('accounts', this.realTimeAccountHandler);
+            
+            // Update when coming back to focus
+            this.visibilityHandler = () => {
+                if (!document.hidden) {
+                    ComplianceUtils.log('AccountListModal', 'Window focused, updating balances');
+                    this.updateAllBalancesRealTime();
+                }
+            };
+            document.addEventListener('visibilitychange', this.visibilityHandler);
+        }
+        
+        stopRealTimeUpdates() {
+            ComplianceUtils.log('AccountListModal', 'Stopping real-time balance updates');
+            
+            if (this.realTimeUpdateInterval) {
+                clearInterval(this.realTimeUpdateInterval);
+                this.realTimeUpdateInterval = null;
+            }
+            
+            if (this.realTimeAccountHandler) {
+                this.app.state.off('accounts', this.realTimeAccountHandler);
+                this.realTimeAccountHandler = null;
+            }
+            
+            if (this.visibilityHandler) {
+                document.removeEventListener('visibilitychange', this.visibilityHandler);
+                this.visibilityHandler = null;
+            }
+        }
+        
+        async updateAllBalancesRealTime() {
+            const accounts = this.app.state.get('accounts') || [];
+            const visibleCards = document.querySelectorAll('.account-card:not(.dragging)');
+            
+            if (visibleCards.length === 0) return;
+            
+            ComplianceUtils.log('AccountListModal', `Updating ${visibleCards.length} visible account balances`);
+            
+            // Update only visible accounts to save API calls
+            const visibleAccountIds = Array.from(visibleCards).map(card => 
+                card.getAttribute('data-account-id')
+            ).filter(id => id);
+            
+            const visibleAccounts = accounts.filter(acc => 
+                visibleAccountIds.includes(acc.id)
+            );
+            
+            // Update Bitcoin price first
+            await this.fetchBTCPrice();
+            
+            // Update balances in small batches
+            const batchSize = 3;
+            for (let i = 0; i < visibleAccounts.length; i += batchSize) {
+                const batch = visibleAccounts.slice(i, i + batchSize);
+                
+                // Check if card is still visible before updating
+                const stillVisibleBatch = batch.filter(account => {
+                    const card = document.querySelector(`.account-card[data-account-id="${account.id}"]`);
+                    return card && !card.classList.contains('dragging');
+                });
+                
+                if (stillVisibleBatch.length > 0) {
+                    await Promise.all(stillVisibleBatch.map(account => 
+                        this.updateBalanceIfNeeded(account)
+                    ));
+                }
+                
+                // Small delay between batches
+                if (i + batchSize < visibleAccounts.length) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+        }
+        
+        async updateBalanceIfNeeded(account) {
+            // Check if balance is already loading
+            if (this.balanceLoading.get(account.id)) {
+                return;
+            }
+            
+            // Check if balance was updated recently (within 20 seconds)
+            const lastUpdate = this.lastBalanceUpdate.get(account.id);
+            if (lastUpdate && Date.now() - lastUpdate < 20000) {
+                return;
+            }
+            
+            // Check if the card is still in the DOM
+            const card = document.querySelector(`.account-card[data-account-id="${account.id}"]`);
+            if (!card || card.classList.contains('dragging')) {
+                return;
+            }
+            
+            // Update the balance
+            await this.refreshAccountBalance(account);
+        }
+        
+        // Drag and Drop Methods
+        handleDragStart(e, account, index) {
+            this.draggedAccount = account;
+            this.draggedIndex = index;
+            
+            // Add dragging class
+            e.currentTarget.classList.add('dragging');
+            e.currentTarget.style.cursor = 'grabbing';
+            
+            // Set drag data
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', account.id);
+            
+            // Create drop indicator if it doesn't exist
+            if (!this.dropIndicator) {
+                const $ = window.ElementFactory || ElementFactory;
+                this.dropIndicator = $.div({
+                    className: 'drop-indicator',
+                    style: {
+                        display: 'none'
+                    }
+                });
+            }
+            
+            ComplianceUtils.log('AccountListModal', `Started dragging account: ${account.name}`);
+        }
+        
+        handleDragEnd(e) {
+            // Remove dragging class
+            e.currentTarget.classList.remove('dragging');
+            e.currentTarget.style.cursor = 'grab';
+            
+            // Hide drop indicator
+            if (this.dropIndicator && this.dropIndicator.parentNode) {
+                this.dropIndicator.parentNode.removeChild(this.dropIndicator);
+            }
+            
+            // Clear drag state
+            this.draggedAccount = null;
+            this.draggedIndex = null;
+            
+            ComplianceUtils.log('AccountListModal', 'Drag ended');
+        }
+        
+        handleDragOver(e) {
+            if (!this.draggedAccount) return;
+            
+            e.preventDefault(); // Allow drop
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Get the card being dragged over
+            const card = e.currentTarget;
+            const rect = card.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            
+            // Determine if we're in the top or bottom half
+            const insertBefore = e.clientY < midpoint;
+            
+            // Position the drop indicator
+            if (this.dropIndicator) {
+                if (!this.dropIndicator.parentNode) {
+                    card.parentNode.appendChild(this.dropIndicator);
+                }
+                
+                this.dropIndicator.style.display = 'block';
+                this.dropIndicator.style.position = 'absolute';
+                this.dropIndicator.style.left = `${rect.left}px`;
+                this.dropIndicator.style.width = `${rect.width}px`;
+                this.dropIndicator.style.top = insertBefore 
+                    ? `${rect.top - 2}px` 
+                    : `${rect.bottom - 2}px`;
+            }
+        }
+        
+        handleDragEnter(e) {
+            if (!this.draggedAccount) return;
+            e.preventDefault();
+        }
+        
+        handleDragLeave(e) {
+            // Only hide indicator if we're leaving the grid entirely
+            if (e.currentTarget === e.target && this.dropIndicator) {
+                this.dropIndicator.style.display = 'none';
+            }
+        }
+        
+        handleDrop(e) {
+            e.preventDefault();
+            
+            if (!this.draggedAccount) return;
+            
+            const droppedCard = e.currentTarget;
+            const droppedIndex = parseInt(droppedCard.getAttribute('data-account-index'));
+            
+            if (isNaN(droppedIndex) || droppedIndex === this.draggedIndex) {
+                return;
+            }
+            
+            // Get current accounts
+            const accounts = this.app.state.get('accounts') || [];
+            
+            // First ensure all accounts have an order property
+            accounts.forEach((acc, idx) => {
+                if (acc.order === undefined) {
+                    acc.order = idx;
+                }
+            });
+            
+            // Sort accounts by current order
+            accounts.sort((a, b) => (a.order || 0) - (b.order || 0));
+            
+            // Get the filtered and sorted view
+            let viewAccounts = this.filterAccounts(accounts);
+            viewAccounts = this.sortAccounts(viewAccounts);
+            
+            // Find the actual indices in the main accounts array
+            const draggedAccountId = this.draggedAccount.id;
+            const droppedAccountId = viewAccounts[droppedIndex].id;
+            
+            const draggedMainIndex = accounts.findIndex(acc => acc.id === draggedAccountId);
+            const droppedMainIndex = accounts.findIndex(acc => acc.id === droppedAccountId);
+            
+            if (draggedMainIndex === -1 || droppedMainIndex === -1) {
+                return;
+            }
+            
+            // Reorder the accounts array
+            const [movedAccount] = accounts.splice(draggedMainIndex, 1);
+            accounts.splice(droppedMainIndex, 0, movedAccount);
+            
+            // Update order property for all accounts
+            accounts.forEach((acc, idx) => {
+                acc.order = idx;
+            });
+            
+            // Save the reordered accounts
+            this.app.state.set('accounts', accounts);
+            
+            // Update the grid
+            this.updateAccountGrid();
+            
+            this.app.showNotification('Account order updated', 'success');
+            ComplianceUtils.log('AccountListModal', `Moved ${movedAccount.name} to position ${droppedMainIndex + 1}`);
+        }
+        
+        // Multi-select methods
+        toggleMultiSelectMode() {
+            this.isMultiSelectMode = !this.isMultiSelectMode;
+            this.selectedAccounts.clear();
+            this.lastSelectedIndex = null;
+            
+            // Update modal class
+            if (this.modal) {
+                const modalContent = this.modal.querySelector('.account-list-modal');
+                if (this.isMultiSelectMode) {
+                    modalContent.classList.add('multi-select-mode');
+                } else {
+                    modalContent.classList.remove('multi-select-mode');
+                }
+            }
+            
+            this.updateAccountGrid();
+            this.app.showNotification(
+                this.isMultiSelectMode ? 'Multi-select mode enabled' : 'Multi-select mode disabled',
+                'info'
+            );
+        }
+        
+        toggleAccountSelection(accountId, index, event) {
+            if (!this.isMultiSelectMode) return;
+            
+            const accounts = this.filterAccounts(this.app.state.get('accounts') || []);
+            
+            if (event.shiftKey && this.lastSelectedIndex !== null) {
+                // Range selection
+                const start = Math.min(this.lastSelectedIndex, index);
+                const end = Math.max(this.lastSelectedIndex, index);
+                
+                for (let i = start; i <= end; i++) {
+                    if (accounts[i]) {
+                        this.selectedAccounts.add(accounts[i].id);
+                    }
+                }
+            } else if (event.ctrlKey || event.metaKey) {
+                // Toggle selection
+                if (this.selectedAccounts.has(accountId)) {
+                    this.selectedAccounts.delete(accountId);
+                } else {
+                    this.selectedAccounts.add(accountId);
+                }
+            } else {
+                // Single selection
+                const wasSelected = this.selectedAccounts.has(accountId);
+                this.selectedAccounts.clear();
+                if (!wasSelected) {
+                    this.selectedAccounts.add(accountId);
+                }
+            }
+            
+            this.lastSelectedIndex = index;
+            this.updateAccountGrid();
+        }
+        
+        createBulkActionsBar() {
+            const $ = window.ElementFactory || ElementFactory;
+            const selectedCount = this.selectedAccounts.size;
+            
+            return $.div({
+                className: 'bulk-actions-bar',
+                style: {
+                    display: selectedCount > 0 ? 'flex' : 'none'
+                }
+            }, [
+                $.span({
+                    style: {
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        marginRight: '20px'
+                    }
+                }, [`${selectedCount} account${selectedCount !== 1 ? 's' : ''} selected`]),
+                
+                $.button({
+                    style: {
+                        padding: '8px 16px',
+                        background: '#000',
+                        border: '2px solid #69fd97',
+                        color: '#69fd97',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontFamily: 'JetBrains Mono, monospace'
+                    },
+                    onclick: () => this.exportSelectedAccounts()
+                }, ['EXPORT']),
+                
+                $.button({
+                    style: {
+                        padding: '8px 16px',
+                        background: '#000',
+                        border: '2px solid #f57315',
+                        color: '#f57315',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontFamily: 'JetBrains Mono, monospace'
+                    },
+                    onclick: () => this.changeColorForSelected()
+                }, ['CHANGE COLOR']),
+                
+                $.button({
+                    style: {
+                        padding: '8px 16px',
+                        background: '#000',
+                        border: '2px solid #ff4444',
+                        color: '#ff4444',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontFamily: 'JetBrains Mono, monospace'
+                    },
+                    onclick: () => this.deleteSelectedAccounts()
+                }, ['DELETE']),
+                
+                $.button({
+                    style: {
+                        padding: '8px 16px',
+                        background: '#000',
+                        border: '2px solid #666',
+                        color: '#666',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        marginLeft: 'auto'
+                    },
+                    onclick: () => {
+                        this.selectedAccounts.clear();
+                        this.updateAccountGrid();
+                    }
+                }, ['CLEAR SELECTION'])
+            ]);
+        }
+        
+        exportSelectedAccounts() {
+            const accounts = this.app.state.get('accounts') || [];
+            const selectedAccountsData = accounts.filter(acc => 
+                this.selectedAccounts.has(acc.id)
+            );
+            
+            if (selectedAccountsData.length === 0) return;
+            
+            const exportData = {
+                version: '2.0',
+                exportDate: new Date().toISOString(),
+                accounts: selectedAccountsData.map(acc => ({
+                    name: acc.name,
+                    mnemonic: acc.mnemonic,
+                    createdAt: acc.createdAt,
+                    type: acc.type,
+                    color: acc.color,
+                    order: acc.order
+                }))
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const $ = window.ElementFactory || ElementFactory;
+            const link = $.a({
+                href: url,
+                download: `moosh-wallet-bulk-export-${Date.now()}.json`
+            });
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            this.app.showNotification(
+                `Exported ${selectedAccountsData.length} account${selectedAccountsData.length !== 1 ? 's' : ''}`,
+                'success'
+            );
+            
+            this.selectedAccounts.clear();
+            this.updateAccountGrid();
+        }
+        
+        changeColorForSelected() {
+            if (this.selectedAccounts.size === 0) return;
+            
+            const $ = window.ElementFactory || ElementFactory;
+            
+            // Create color picker overlay
+            const overlay = $.div({
+                style: {
+                    position: 'fixed',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    bottom: '0',
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: '10002'
+                },
+                onclick: (e) => {
+                    if (e.target === e.currentTarget) {
+                        document.body.removeChild(overlay);
+                    }
+                }
+            }, [
+                $.div({
+                    style: {
+                        background: '#111',
+                        border: '2px solid #333',
+                        padding: '20px',
+                        minWidth: '300px'
+                    }
+                }, [
+                    $.h3({ 
+                        style: { 
+                            color: '#f57315', 
+                            marginBottom: '20px',
+                            fontSize: '18px'
+                        } 
+                    }, [`Choose Color for ${this.selectedAccounts.size} Account${this.selectedAccounts.size !== 1 ? 's' : ''}`]),
+                    
+                    $.div({
+                        style: {
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 60px)',
+                            gap: '10px',
+                            marginBottom: '20px'
+                        }
+                    }, this.app.state.getAccountColors().map(color => {
+                        const colorDiv = document.createElement('div');
+                        colorDiv.style.cssText = `
+                            width: 60px;
+                            height: 60px;
+                            background-color: ${color} !important;
+                            background: ${color} !important;
+                            border: 2px solid #333;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            border-radius: 0;
+                            display: block;
+                        `;
+                        
+                        colorDiv.addEventListener('mouseover', (e) => {
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.border = '2px solid #fff';
+                        });
+                        
+                        colorDiv.addEventListener('mouseout', (e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.border = '2px solid #333';
+                        });
+                        
+                        colorDiv.addEventListener('click', () => {
+                            this.applyColorToSelected(color);
+                            document.body.removeChild(overlay);
+                        });
+                        
+                        return colorDiv;
+                    })),
+                    
+                    $.button({
+                        style: {
+                            width: '100%',
+                            padding: '10px',
+                            background: '#000',
+                            border: '2px solid #333',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontFamily: 'JetBrains Mono, monospace'
+                        },
+                        onclick: () => {
+                            document.body.removeChild(overlay);
+                        }
+                    }, ['CANCEL'])
+                ])
+            ]);
+            
+            document.body.appendChild(overlay);
+        }
+        
+        applyColorToSelected(color) {
+            const accounts = this.app.state.get('accounts') || [];
+            let updated = 0;
+            
+            accounts.forEach(account => {
+                if (this.selectedAccounts.has(account.id)) {
+                    account.color = color;
+                    updated++;
+                }
+            });
+            
+            if (updated > 0) {
+                this.app.state.set('accounts', accounts);
+                this.app.showNotification(
+                    `Updated color for ${updated} account${updated !== 1 ? 's' : ''}`,
+                    'success'
+                );
+            }
+            
+            this.selectedAccounts.clear();
+            this.updateAccountGrid();
+        }
+        
+        deleteSelectedAccounts() {
+            const selectedCount = this.selectedAccounts.size;
+            if (selectedCount === 0) return;
+            
+            const accounts = this.app.state.get('accounts') || [];
+            const currentAccountId = this.app.state.get('currentAccountId');
+            
+            // Check if we're trying to delete all accounts
+            if (selectedCount >= accounts.length) {
+                this.app.showNotification('Cannot delete all accounts', 'error');
+                return;
+            }
+            
+            // Check if we're deleting the current account
+            const deletingCurrent = this.selectedAccounts.has(currentAccountId);
+            
+            if (confirm(`Are you sure you want to delete ${selectedCount} account${selectedCount !== 1 ? 's' : ''}?\n\nThis action cannot be undone!`)) {
+                // Filter out selected accounts
+                const remainingAccounts = accounts.filter(acc => 
+                    !this.selectedAccounts.has(acc.id)
+                );
+                
+                this.app.state.set('accounts', remainingAccounts);
+                
+                // If we deleted the current account, switch to first remaining
+                if (deletingCurrent && remainingAccounts.length > 0) {
+                    this.app.state.switchAccount(remainingAccounts[0].id);
+                }
+                
+                this.app.showNotification(
+                    `Deleted ${selectedCount} account${selectedCount !== 1 ? 's' : ''}`,
+                    'success'
+                );
+                
+                this.selectedAccounts.clear();
+                this.updateAccountGrid();
+            }
         }
     }
 

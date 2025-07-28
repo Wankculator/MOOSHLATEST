@@ -77,7 +77,14 @@
         }
 
         static generateUniqueId() {
-            return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            // Use crypto-secure randomness for unique ID generation
+            const randomBytes = new Uint8Array(5);
+            window.crypto.getRandomValues(randomBytes);
+            const random = Array.from(randomBytes)
+                .map(b => b.toString(36))
+                .join('')
+                .substring(0, 9);
+            return `${Date.now()}-${random}`;
         }
 
         static sleep(ms) {

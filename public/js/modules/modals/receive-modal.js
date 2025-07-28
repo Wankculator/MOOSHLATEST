@@ -9,6 +9,19 @@
         constructor(app, walletType = 'taproot') {
             super(app);
             this.walletType = walletType;
+            
+            // Debounce utility method
+            this.debounce = (func, wait) => {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            };
         }
 
         show() {
@@ -171,7 +184,9 @@
             
             try {
                 // Clear loading message
-                container.innerHTML = '';
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
                 
                 // Create QR code using qrcode.js if available
                 if (typeof QRCode !== 'undefined') {
@@ -185,22 +200,27 @@
                     });
                 } else {
                     // Fallback to simple text display
-                    container.innerHTML = `
-                        <div style="
-                            padding: 20px;
-                            border: 2px solid var(--text-primary);
-                            font-family: monospace;
-                            font-size: 10px;
-                            word-break: break-all;
-                            text-align: center;
-                        ">
-                            bitcoin:${address}
-                        </div>
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.style.cssText = `
+                        padding: 20px;
+                        border: 2px solid var(--text-primary);
+                        font-family: monospace;
+                        font-size: 10px;
+                        word-break: break-all;
+                        text-align: center;
                     `;
+                    fallbackDiv.textContent = `bitcoin:${address}`;
+                    container.appendChild(fallbackDiv);
                 }
             } catch (error) {
                 console.error('Failed to generate QR code:', error);
-                container.innerHTML = '<div class="qr-error">Failed to generate QR code</div>';
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'qr-error';
+                errorDiv.textContent = 'Failed to generate QR code';
+                container.appendChild(errorDiv);
             }
         }
 
@@ -209,6 +229,7 @@
             const unitSelect = document.getElementById('receive-unit');
             
             if (amountInput && unitSelect) {
+                // Create debounced handler for cleanup
                 const updateQR = () => {
                     const amount = parseFloat(amountInput.value);
                     if (amount > 0) {
@@ -229,8 +250,11 @@
                     }
                 };
                 
-                amountInput.addEventListener('input', updateQR);
-                unitSelect.addEventListener('change', updateQR);
+                // Store debounced handler for cleanup
+                this.updateQRHandler = this.debounce(updateQR, 300);
+                
+                amountInput.addEventListener('input', this.updateQRHandler);
+                unitSelect.addEventListener('change', this.updateQRHandler);
             }
         }
 
@@ -241,7 +265,9 @@
             const uri = `bitcoin:${address}?amount=${amount.toFixed(8)}`;
             
             try {
-                container.innerHTML = '';
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
                 
                 if (typeof QRCode !== 'undefined') {
                     new QRCode(container, {
@@ -470,6 +496,24 @@
             `;
             
             document.head.appendChild(style);
+        }
+    }
+
+        close() {
+            // Clean up event listeners
+            const amountInput = document.getElementById('receive-amount');
+            const unitSelect = document.getElementById('receive-unit');
+            
+            if (amountInput && this.updateQRHandler) {
+                amountInput.removeEventListener('input', this.updateQRHandler);
+            }
+            
+            if (unitSelect && this.updateQRHandler) {
+                unitSelect.removeEventListener('change', this.updateQRHandler);
+            }
+            
+            // Call parent close method
+            super.close();
         }
     }
 

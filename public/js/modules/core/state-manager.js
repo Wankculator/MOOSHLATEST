@@ -45,6 +45,9 @@
             // Initialize secure storage
             this.secureStorage = new SecureStorage();
             
+            // Initialize secure persistence (will be activated when password is available)
+            this.securePersistence = null;
+            
             this.loadPersistedState();
             this.loadAccounts();
             
@@ -402,6 +405,194 @@
         
         // NOTE: The fixMissingAddresses method is also implemented in the main app
         // due to its dependency on API calls.
+        
+        // ============= Secure Persistence Methods =============
+        
+        /**
+         * Initialize secure persistence with password
+         * @param {string} password - Master password
+         * @returns {Promise<boolean>} Success status
+         */
+        async initializeSecurePersistence(password) {
+            try {
+                if (!window.SecureStatePersistence) {
+                    console.error('[StateManager] SecureStatePersistence not loaded');
+                    return false;
+                }
+                
+                // Create secure persistence instance
+                this.securePersistence = new window.SecureStatePersistence(this);
+                
+                // Initialize with password
+                const initialized = await this.securePersistence.initialize(password);
+                
+                if (initialized) {
+                    console.log('[StateManager] Secure persistence initialized');
+                    
+                    // Trigger secure save for existing data
+                    await this.securePersistence.saveSecureState();
+                }
+                
+                return initialized;
+            } catch (error) {
+                console.error('[StateManager] Failed to initialize secure persistence:', error);
+                return false;
+            }
+        }
+        
+        /**
+         * Lock wallet and clear sensitive data
+         */
+        lockWallet() {
+            // Clear sensitive data from memory
+            this.state.walletPassword = null;
+            this.state.generatedSeed = null;
+            this.state.verificationWords = [];
+            
+            // Clear password from session storage
+            sessionStorage.removeItem('moosh_wallet_pwd_hash');
+            
+            // Lock secure persistence
+            if (this.securePersistence) {
+                this.securePersistence.lock();
+            }
+            
+            // Navigate to home/login
+            this.set('currentPage', 'home');
+            
+            // Notify listeners
+            this.notifySubscribers('security', { event: 'wallet_locked' });
+        }
+        
+        /**
+         * Unlock wallet with password
+         * @param {string} password
+         * @returns {Promise<boolean>} Success status
+         */
+        async unlockWallet(password) {
+            try {
+                // Verify password
+                if (!this.verifyPassword(password)) {
+                    return false;
+                }
+                
+                // Unlock secure persistence
+                if (this.securePersistence) {
+                    const unlocked = await this.securePersistence.unlock(password);
+                    if (!unlocked) {
+                        return false;
+                    }
+                    
+                    // Reload secure data
+                    const secureData = await this.securePersistence.loadSecureState();
+                    if (secureData) {
+                        this.securePersistence.mergeState(secureData);
+                    }
+                }
+                
+                // Set password
+                this.setPassword(password);
+                
+                // Notify listeners
+                this.notifySubscribers('security', { event: 'wallet_unlocked' });
+                
+                return true;
+            } catch (error) {
+                console.error('[StateManager] Failed to unlock wallet:', error);
+                return false;
+            }
+        }
+        
+        /**
+         * Change master password
+         * @param {string} oldPassword
+         * @param {string} newPassword
+         * @returns {Promise<boolean>} Success status
+         */
+        async changeMasterPassword(oldPassword, newPassword) {
+            try {
+                // Verify old password
+                if (!this.verifyPassword(oldPassword)) {
+                    return false;
+                }
+                
+                // Change password in secure persistence
+                if (this.securePersistence) {
+                    const changed = await this.securePersistence.changePassword(oldPassword, newPassword);
+                    if (!changed) {
+                        return false;
+                    }
+                }
+                
+                // Update stored password hash
+                this.setPassword(newPassword);
+                
+                // Notify listeners
+                this.notifySubscribers('security', { event: 'password_changed' });
+                
+                return true;
+            } catch (error) {
+                console.error('[StateManager] Failed to change password:', error);
+                return false;
+            }
+        }
+        
+        /**
+         * Create encrypted backup
+         * @returns {Object|null} Backup data
+         */
+        createSecureBackup() {
+            if (!this.securePersistence) {
+                console.error('[StateManager] Secure persistence not initialized');
+                return null;
+            }
+            
+            return this.securePersistence.createBackup();
+        }
+        
+        /**
+         * Restore from encrypted backup
+         * @param {Object} backup - Backup data
+         * @param {string} password - Password to decrypt backup
+         * @returns {Promise<boolean>} Success status
+         */
+        async restoreSecureBackup(backup, password) {
+            try {
+                if (!this.securePersistence) {
+                    // Initialize secure persistence first
+                    await this.initializeSecurePersistence(password);
+                }
+                
+                if (!this.securePersistence) {
+                    return false;
+                }
+                
+                const restored = await this.securePersistence.restoreBackup(backup, password);
+                
+                if (restored) {
+                    // Reload accounts and state
+                    this.loadAccounts();
+                    this.loadPersistedState();
+                    
+                    // Notify listeners
+                    this.notifySubscribers('security', { event: 'backup_restored' });
+                }
+                
+                return restored;
+            } catch (error) {
+                console.error('[StateManager] Failed to restore backup:', error);
+                return false;
+            }
+        }
+        
+        /**
+         * Check if wallet is locked
+         * @returns {boolean}
+         */
+        isWalletLocked() {
+            return !this.state.walletPassword && 
+                   (!this.securePersistence || this.securePersistence.isLocked());
+        }
     }
 
     // Make available globally and maintain compatibility

@@ -36,7 +36,10 @@
     "mcp:security": "node scripts/check-security.js",
     "mcp:install": "./scripts/install-all-mcps.sh",
     "mcp:status": "node scripts/mcp-status.js",
-    "precommit": "npm run lint && npm run test",
+    "type:check": "tsc --noEmit",
+    "type:check:watch": "tsc --noEmit --watch",
+    "type:build": "tsc --declaration --emitDeclarationOnly --outDir dist/types",
+    "precommit": "npm run lint && npm run test && npm run type:check",
     "prepare": "husky install"
   },
   "repository": {

@@ -2,48 +2,232 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOOSH Wallet - Modular Version</title>
-    <meta name="description" content="Professional-grade, non-custodial Bitcoin and Spark Protocol wallet with enterprise features">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <!-- Preconnect to external resources -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOOSH WALLET - Professional Bitcoin & Spark Protocol Wallet</title>
+    <meta name="description" content="MOOSH WALLET - Professional Bitcoin wallet with Spark Protocol integration. Secure, fast, and pixel-perfect.">
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Core styles -->
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/mobile-enhancements.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <!-- Base Styles -->
+    <style>
+        :root {
+            /* Colors */
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --text-primary: #f57315;
+            --text-secondary: #ff8c42;
+            --text-dim: #666666;
+            --border-color: #333333;
+            --success: #00ff00;
+            --error: #ff0000;
+            --warning: #ffaa00;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            
+            /* Typography */
+            --font-xs: 11px;
+            --font-sm: 13px;
+            --font-md: 15px;
+            --font-lg: 18px;
+            --font-xl: 24px;
+            --font-2xl: 32px;
+            
+            /* Layout */
+            --container-sm: 640px;
+            --container-md: 768px;
+            --container-lg: 1024px;
+            --container-xl: 1280px;
+            
+            /* Misc */
+            --touch-target: 44px;
+            --scale-factor: 1;
+        }
+        
+        /* MOOSH Mode Theme */
+        body.moosh-mode {
+            --text-primary: #7fffb3;
+            --text-secondary: #69fd97;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+        
+        #app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .loading-progress {
+            width: 200px;
+            height: 2px;
+            background: var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 40%;
+            background: var(--text-primary);
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+        }
+    </style>
 </head>
 <body>
-    <!-- Main app container -->
     <div id="app">
-        <!-- Loading screen (shown until app initializes) -->
-        <div class="loading-screen">
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
             <div class="loading-content">
-                <h1 class="loading-title">MOOSH WALLET</h1>
-                <div class="loading-spinner"></div>
-                <p class="loading-text">Initializing modular wallet...</p>
+                <img src="04_ASSETS/Brand_Assets/Logos/Moosh_logo.png" alt="MOOSH" class="loading-logo" onerror="this.style.display='none'">
+                <div class="loading-text">LOADING MOOSH WALLET</div>
+                <div class="loading-progress"></div>
             </div>
         </div>
     </div>
+
+    <!-- Core Modules -->
+    <script src="js/modules/core/element-factory.js"></script>
+    <script src="js/modules/core/responsive-utils.js"></script>
+    <script src="js/modules/core/compliance-utils.js"></script>
+    <script src="js/modules/core/style-manager.js"></script>
+    <script src="js/modules/core/secure-storage.js"></script>
+    <script src="js/modules/core/state-manager.js"></script>
+    <script src="js/modules/core/api-service.js"></script>
+    <script src="js/modules/core/router.js"></script>
+    <script src="js/modules/core/component.js"></script>
     
-    <!-- No JavaScript warning -->
-    <noscript>
-        <div>
-            <h1>JavaScript Required</h1>
-            <p>MOOSH Wallet requires JavaScript to provide secure wallet functionality.</p>
-            <p>Please enable JavaScript in your browser settings and refresh the page.</p>
-        </div>
-    </noscript>
+    <!-- UI Components -->
+    <script src="js/modules/ui/terminal.js"></script>
+    <script src="js/modules/ui/button.js"></script>
+    <script src="js/modules/ui/header.js"></script>
+    <script src="js/modules/ui/transaction-history.js"></script>
     
-    <!-- Module imports -->
-    <script type="module">
-        import MOOSHWalletApp from './js/app.js';
-        console.log('Loading modular MOOSH Wallet...');
+    <!-- Features -->
+    <script src="js/modules/features/wallet-manager.js"></script>
+    <script src="js/modules/features/ordinals-manager.js"></script>
+    <script src="js/modules/features/wallet-detector.js"></script>
+    
+    <!-- Pages -->
+    <script src="js/modules/pages/home-page.js"></script>
+    <script src="js/modules/pages/dashboard-page.js"></script>
+    <script src="js/modules/pages/generate-seed-page.js"></script>
+    <script src="js/modules/pages/confirm-seed-page.js"></script>
+    <script src="js/modules/pages/import-seed-page.js"></script>
+    <script src="js/modules/pages/wallet-created-page.js"></script>
+    <script src="js/modules/pages/wallet-imported-page.js"></script>
+    <script src="js/modules/pages/wallet-details-page.js"></script>
+    
+    <!-- Modals -->
+    <script src="js/modules/modals/modal-base.js"></script>
+    <script src="js/modules/modals/send-modal.js"></script>
+    <script src="js/modules/modals/receive-modal.js"></script>
+    <script src="js/modules/modals/ordinals-modal.js"></script>
+    <script src="js/modules/modals/ordinals-terminal-modal.js"></script>
+    <script src="js/modules/modals/token-menu-modal.js"></script>
+    <script src="js/modules/modals/AccountListModal.js"></script>
+    <script src="js/modules/modals/WalletSettingsModal.js"></script>
+    <script src="js/modules/modals/SparkDashboardModal.js"></script>
+    <script src="js/modules/modals/SparkDepositModal.js"></script>
+    <script src="js/modules/modals/LightningChannelModal.js"></script>
+    <script src="js/modules/modals/MultiAccountModal.js"></script>
+    
+    <!-- Spark Protocol Modules -->
+    <script src="js/modules/spark/spark-state-manager.js"></script>
+    <script src="js/modules/spark/spark-bitcoin-manager.js"></script>
+    <script src="js/modules/spark/spark-lightning-manager.js"></script>
+    <script src="js/modules/spark/spark-wallet-manager.js"></script>
+    
+    <!-- Utilities -->
+    <script src="js/modules/utils.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/moosh-wallet-app.js"></script>
+    
+    <!-- Hide loading screen when app is ready -->
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.transition = 'opacity 0.3s ease';
+                    setTimeout(function() {
+                        loadingScreen.remove();
+                    }, 300);
+                }
+            }, 500);
+        });
     </script>
 </body>
 </html>

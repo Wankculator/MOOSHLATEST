@@ -1,0 +1,22 @@
+{
+  "name": "@moosh/firecrawl-mcp",
+  "version": "1.0.0",
+  "description": "Firecrawl MCP for web scraping Ordinals, blockchain, and market data",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node index.js stats"
+  },
+  "keywords": [
+    "mcp",
+    "firecrawl",
+    "web-scraping",
+    "ordinals",
+    "blockchain",
+    "bitcoin"
+  ],
+  "author": "MOOSH Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

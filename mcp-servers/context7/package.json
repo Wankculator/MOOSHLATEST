@@ -1,0 +1,21 @@
+{
+  "name": "@moosh/context7-mcp",
+  "version": "1.0.0",
+  "description": "Context7 MCP for advanced code context management and impact analysis",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mcp",
+    "context",
+    "code-analysis",
+    "dependency-graph",
+    "impact-analysis"
+  ],
+  "author": "MOOSH Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

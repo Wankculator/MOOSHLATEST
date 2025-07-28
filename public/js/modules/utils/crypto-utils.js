@@ -20,8 +20,23 @@
             return randomBytes[0] % max;
         }
 
-        // Simple hash function for passwords (in production, use bcrypt or similar)
-        static hashPassword(password) {
+        // Secure password hashing using PBKDF2
+        static async hashPassword(password) {
+            // Check if PasswordService is available
+            if (window.PasswordService) {
+                const passwordService = new window.PasswordService();
+                const result = await passwordService.hashPassword(password);
+                // For backward compatibility, return just the hash when used as sync
+                return result.hash;
+            } else {
+                // Fallback to legacy hash with warning
+                console.warn('[CryptoUtils] Using legacy password hash - PasswordService not loaded');
+                return this.legacyHashPassword(password);
+            }
+        }
+
+        // Legacy hash function (kept for migration only)
+        static legacyHashPassword(password) {
             let hash = 0;
             for (let i = 0; i < password.length; i++) {
                 const char = password.charCodeAt(i);
@@ -32,8 +47,16 @@
         }
 
         // Verify password against hash
-        static verifyPassword(password, hash) {
-            return this.hashPassword(password) === hash;
+        static async verifyPassword(password, hash, salt = null) {
+            // Check if PasswordService is available
+            if (window.PasswordService && salt) {
+                const passwordService = new window.PasswordService();
+                return await passwordService.verifyPassword(password, hash, salt);
+            } else {
+                // Fallback to legacy verification
+                const legacyHash = this.legacyHashPassword(password);
+                return legacyHash === hash;
+            }
         }
 
         // Simple encryption for demo purposes (in production, use proper crypto library)

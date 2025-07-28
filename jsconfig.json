@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    // Enable type checking for JavaScript files
+    "checkJs": true,
+    "allowJs": true,
+    
+    // Module resolution
+    "module": "ES2022",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    
+    // Type roots
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node"],
+    
+    // Path mapping
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@server/*": ["src/server/*"],
+      "@services/*": ["src/server/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["types/*"],
+      "moosh-wallet": ["types/index.d.ts"],
+      "moosh-wallet/*": ["types/*"]
+    },
+    
+    // Strict checks (opt-in for JS)
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    
+    // Other options
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*",
+    "public/**/*.js",
+    "scripts/**/*.js",
+    "types/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.spec.js",
+    "**/*.test.js"
+  ]
+}

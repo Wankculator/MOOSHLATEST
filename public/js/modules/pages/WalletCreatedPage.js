@@ -517,7 +517,25 @@
                     onclick: () => this.showWalletSettings(),
                     onmouseover: function() { this.style.background = 'var(--text-primary)'; this.style.color = 'var(--bg-primary)'; },
                     onmouseout: function() { this.style.background = '#000000'; this.style.color = 'var(--text-primary)'; }
-                }, ['Wallet Settings'])
+                }, ['Wallet Settings']),
+                
+                // Export Wallet button
+                $.button({
+                    className: 'btn-secondary',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer; margin-top: calc(16px * var(--scale-factor));',
+                    onclick: () => this.showExportWallet(),
+                    onmouseover: function() { this.style.background = 'var(--text-accent)'; this.style.color = 'var(--bg-primary)'; },
+                    onmouseout: function() { this.style.background = '#000000'; this.style.color = 'var(--text-accent)'; }
+                }, ['Export Wallet 📤']),
+                
+                // Import Wallet button
+                $.button({
+                    className: 'btn-secondary',
+                    style: 'width: 100%; font-size: calc(14px * var(--scale-factor)); background: #000000; border: 2px solid var(--text-accent); color: var(--text-accent); border-radius: 0; padding: calc(12px * var(--scale-factor)); transition: all 0.2s ease; cursor: pointer;',
+                    onclick: () => this.showImportWallet(),
+                    onmouseover: function() { this.style.background = 'var(--text-accent)'; this.style.color = 'var(--bg-primary)'; },
+                    onmouseout: function() { this.style.background = '#000000'; this.style.color = 'var(--text-accent)'; }
+                }, ['Import Wallet 📥'])
             ]);
         }
         
@@ -2733,6 +2751,74 @@
                 }
             `;
             document.head.appendChild(style);
+        }
+        showExportWallet() {
+            console.log('[WalletCreatedPage] Opening export wallet modal');
+            
+            // Dynamically load the ExportWalletModal if not already loaded
+            if (!window.ExportWalletModal) {
+                const script = document.createElement('script');
+                script.src = '/js/modules/modals/ExportWalletModal.js';
+                script.onload = () => {
+                    this.openExportModal();
+                };
+                document.head.appendChild(script);
+            } else {
+                this.openExportModal();
+            }
+        }
+        
+        openExportModal() {
+            // Get current wallet data
+            const currentAccount = this.app.state.get('currentAccount');
+            const walletData = {
+                id: currentAccount?.id || 'default',
+                name: currentAccount?.name || 'Main Wallet',
+                addresses: currentAccount?.addresses || {},
+                spark: currentAccount?.spark || false
+            };
+            
+            const modal = new window.ExportWalletModal(this.app, walletData);
+            modal.show();
+        }
+        
+        showImportWallet() {
+            console.log('[WalletCreatedPage] Opening import wallet modal');
+            
+            // Dynamically load the ImportWalletModal if not already loaded
+            if (!window.ImportWalletModal) {
+                const script = document.createElement('script');
+                script.src = '/js/modules/modals/ImportWalletModal.js';
+                script.onload = () => {
+                    this.openImportModal();
+                };
+                document.head.appendChild(script);
+            } else {
+                this.openImportModal();
+            }
+        }
+        
+        openImportModal() {
+            const modal = new window.ImportWalletModal(this.app);
+            modal.show();
+        }
+        
+        showWalletSettings() {
+            console.log('[WalletCreatedPage] Opening wallet settings modal');
+            const modal = new window.WalletSettingsModal(this.app);
+            modal.show();
+        }
+        
+        showTokenMenu() {
+            console.log('[WalletCreatedPage] Opening token menu modal');
+            const modal = new window.TokenMenuModal(this.app);
+            modal.show();
+        }
+        
+        showTransactionHistory() {
+            console.log('[WalletCreatedPage] Opening transaction history modal');
+            const modal = new window.TransactionHistoryModal(this.app);
+            modal.show();
         }
     }
 

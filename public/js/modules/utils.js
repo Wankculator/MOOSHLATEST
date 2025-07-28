@@ -266,7 +266,13 @@ export function getBrowserInfo() {
  */
 export function generateId(prefix = '') {
     const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substr(2, 9);
+    // Use crypto-secure randomness for ID generation
+    const randomBytes = new Uint8Array(5);
+    window.crypto.getRandomValues(randomBytes);
+    const random = Array.from(randomBytes)
+        .map(b => b.toString(36))
+        .join('')
+        .substring(0, 9);
     return prefix ? `${prefix}_${timestamp}_${random}` : `${timestamp}_${random}`;
 }
 
